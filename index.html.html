@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F5F1E8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Weight Journal">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23F5F1E8'/><text x='90' y='118' font-family='Georgia,serif' font-size='100' font-style='italic' fill='%23B8453A' text-anchor='middle'>w</text></svg>">
+<title>The Weight Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F5F1E8;
+    --paper-warm: #EFE9DB;
+    --ink: #1C1C1A;
+    --ink-soft: #3A3935;
+    --muted: #8B8680;
+    --rule: #D9D2C0;
+    --accent: #B8453A;
+    --accent-soft: #E8C5BD;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Geist', -apple-system, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding: calc(20px + var(--safe-top)) 18px calc(40px + var(--safe-bottom));
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(36px, 9vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+    font-variation-settings: "opsz" 144;
+  }
+  h1 .num {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+  }
+  .rule {
+    height: 1px;
+    background: var(--ink);
+    margin: 20px 0 28px;
+  }
+
+  /* ---------- stats ---------- */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .stat {
+    padding: 16px 16px 18px 0;
+    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+  }
+  .stat:nth-child(2n) { border-right: none; padding-right: 0; padding-left: 16px; }
+  .stat:nth-last-child(-n+2) { border-bottom: none; }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-value.big { font-size: 44px; }
+  .stat-value.accent { color: var(--accent); }
+  .stat-unit {
+    font-family: 'Geist', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 4px;
+    letter-spacing: 0;
+  }
+
+  /* ---------- progress ---------- */
+  .progress-wrap { margin-bottom: 32px; }
+  .progress-track {
+    position: relative;
+    height: 6px;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+  .progress-marker {
+    position: absolute;
+    top: -4px;
+    width: 2px;
+    height: 14px;
+    background: var(--ink);
+    transform: translateX(-1px);
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    left: 0%;
+  }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .progress-goal { color: var(--accent); font-weight: 500; }
+
+  /* ---------- card ---------- */
+  .card {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 22px 20px;
+    margin-bottom: 24px;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    font-style: italic;
+  }
+  .legend {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-line {
+    width: 16px;
+    height: 0;
+    display: inline-block;
+  }
+
+  /* ---------- chart ---------- */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+  }
+  .chart-empty {
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--rule);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    padding: 0 20px;
+  }
+  svg.chart { width: 100%; height: 100%; display: block; }
+  svg.chart text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    fill: var(--muted);
+  }
+  .chart-tooltip {
+    position: absolute;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 8px 12px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    min-width: 140px;
+    z-index: 10;
+  }
+  .chart-tooltip.visible { opacity: 1; }
+  .tt-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .tt-row { display: flex; justify-content: space-between; gap: 12px; padding: 1px 0; }
+  .tt-val { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  /* ---------- insights ---------- */
+  .insights {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  @media (min-width: 480px) {
+    .insights { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  .insight {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 16px 18px;
+  }
+  .insight-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .insight-value {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .insight-unit {
+    font-family: 'Geist', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 3px;
+  }
+  .insight-note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+  }
+
+  /* ---------- form ---------- */
+  .form-hint {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    margin: 6px 0 18px;
+    line-height: 1.5;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .field { display: flex; flex-direction: column; }
+  .field.full { grid-column: 1 / -1; }
+  label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 12px 12px;
+    font-size: 16px;
+    color: var(--ink);
+    width: 100%;
+    font-family: 'Geist', sans-serif;
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus { outline: none; border-color: var(--ink); }
+  button {
+    cursor: pointer;
+    font-family: 'Geist', sans-serif;
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  button.primary {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 14px 22px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  button.primary:active { background: var(--ink-soft); }
+  button.ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- entries ---------- */
+  .entries { margin-top: 14px; border-top: 1px solid var(--rule); }
+  .entry {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+  .entry-date {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-style: italic;
+  }
+  .entry-weight {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .entry-unit {
+    font-family: 'Geist', sans-serif;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .entry-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+    text-align: right;
+  }
+  .entry-delta.down { color: var(--accent); }
+  .entry-delta.up { color: var(--ink); }
+  .entry-notes {
+    grid-column: 1 / -1;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 22px;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+    padding: 0;
+  }
+
+  /* ---------- settings ---------- */
+  .settings-btn {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 0;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .settings-edit {
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .settings-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .settings-actions button { flex: 1; }
+
+  .footer {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="masthead-top">
+    <span>The Weight Journal</span>
+    <span id="today-date"></span>
+  </div>
+  <h1>From <span class="num" id="start-display">191</span> to <span class="num" id="goal-display">170</span></h1>
+  <div class="rule"></div>
+</header>
+
+<section class="stats" id="stats"></section>
+
+<section class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+    <div class="progress-marker" id="progress-marker"></div>
+  </div>
+  <div class="progress-labels">
+    <span id="progress-start">191 lbs</span>
+    <span class="progress-goal" id="progress-goal">Goal · 170 lbs</span>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h2>The Trajectory</h2>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-line" style="border-top: 2px solid var(--ink);"></span> daily</span>
+      <span class="legend-item"><span class="legend-line" style="border-top: 2px solid var(--accent);"></span> 7-day avg</span>
+      <span class="legend-item"><span class="legend-line" style="border-top: 1.5px dashed var(--muted);"></span> goal</span>
+    </div>
+  </div>
+  <div class="chart-wrap" id="chart-wrap">
+    <div class="chart-empty" id="chart-empty">
+      No entries yet. Add today's weight below to begin charting.
+    </div>
+    <svg class="chart hidden" id="chart" preserveAspectRatio="none"></svg>
+    <div class="chart-tooltip" id="tooltip"></div>
+  </div>
+</section>
+
+<section class="insights hidden" id="insights"></section>
+
+<section class="card">
+  <h2>Log Today</h2>
+  <p class="form-hint">
+    Weigh at the same time each day for consistency — first thing in the morning, after using the bathroom, before eating or drinking.
+  </p>
+  <div class="form-grid">
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="input-date">
+    </div>
+    <div class="field">
+      <label>Weight (lbs)</label>
+      <input type="number" inputmode="decimal" step="0.1" placeholder="190.5" id="input-weight">
+    </div>
+    <div class="field full">
+      <label>Notes (optional)</label>
+      <input type="text" placeholder="dose taken, side effects, mood…" id="input-notes">
+    </div>
+  </div>
+  <button class="primary" id="add-btn">Record</button>
+</section>
+
+<section class="card hidden" id="entries-card">
+  <h2>The Record</h2>
+  <div class="entries" id="entries-list"></div>
+</section>
+
+<section>
+  <button class="settings-btn" id="settings-btn">Edit starting &amp; goal weights</button>
+  <div class="settings-edit hidden" id="settings-edit">
+    <h2>Adjust Goals</h2>
+    <div class="form-grid" style="margin-top: 12px;">
+      <div class="field">
+        <label>Starting weight</label>
+        <input type="number" inputmode="decimal" step="0.1" id="draft-start">
+      </div>
+      <div class="field">
+        <label>Goal weight</label>
+        <input type="number" inputmode="decimal" step="0.1" id="draft-goal">
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button class="ghost" id="settings-cancel">Cancel</button>
+      <button class="primary" id="settings-save">Save</button>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">Data lives in your browser only · v1</footer>
+
+<script>
+'use strict';
+
+// ---------- storage ----------
+const STORAGE_ENTRIES = 'wj:entries:v1';
+const STORAGE_SETTINGS = 'wj:settings:v1';
+
+const defaultSettings = { startWeight: 191, goalWeight: 170 };
+
+let entries = [];
+let settings = { ...defaultSettings };
+
+function loadState() {
+  try {
+    const e = localStorage.getItem(STORAGE_ENTRIES);
+    if (e) entries = JSON.parse(e);
+  } catch (err) { console.error('load entries failed', err); }
+  try {
+    const s = localStorage.getItem(STORAGE_SETTINGS);
+    if (s) settings = { ...defaultSettings, ...JSON.parse(s) };
+  } catch (err) { console.error('load settings failed', err); }
+}
+
+function saveEntries() {
+  try { localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(entries)); }
+  catch (err) { console.error('save entries failed', err); }
+}
+
+function saveSettings() {
+  try { localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings)); }
+  catch (err) { console.error('save settings failed', err); }
+}
+
+// ---------- helpers ----------
+function todayISO() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(iso) {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function fmtDateLong(iso) {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+function daysBetween(a, b) {
+  return (new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000;
+}
+
+// ---------- compute ----------
+function compute() {
+  const sorted = entries.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const current = sorted.length ? sorted[sorted.length - 1].weight : settings.startWeight;
+  const totalLost = settings.startWeight - current;
+  const toGo = current - settings.goalWeight;
+  const totalToLose = settings.startWeight - settings.goalWeight;
+  const pct = totalToLose > 0 ? Math.max(0, Math.min(100, (totalLost / totalToLose) * 100)) : 0;
+
+  let weeklyRate = null, projectedDate = null, daysTracked = 0;
+  if (sorted.length >= 2) {
+    const first = sorted[0], last = sorted[sorted.length - 1];
+    const days = daysBetween(first.date, last.date);
+    daysTracked = days;
+    if (days > 0) {
+      const perDay = (first.weight - last.weight) / days;
+      weeklyRate = perDay * 7;
+      if (perDay > 0 && toGo > 0) {
+        projectedDate = new Date(new Date(last.date + 'T00:00:00').getTime() + (toGo / perDay) * 86400000);
+      }
+    }
+  }
+
+  const withAvg = sorted.map((entry, i) => {
+    const win = sorted.slice(Math.max(0, i - 6), i + 1);
+    const avg = win.reduce((s, e) => s + e.weight, 0) / win.length;
+    return { ...entry, avg: parseFloat(avg.toFixed(2)) };
+  });
+
+  return { sorted, current, totalLost, toGo, pct, weeklyRate, projectedDate, daysTracked, withAvg };
+}
+
+// ---------- render: stats ----------
+function renderStats(s) {
+  const lostStr = s.totalLost >= 0 ? `−${s.totalLost.toFixed(1)}` : `+${Math.abs(s.totalLost).toFixed(1)}`;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat">
+      <div class="stat-label">Current</div>
+      <div class="stat-value big">${s.current.toFixed(1)}<span class="stat-unit">lbs</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Lost</div>
+      <div class="stat-value ${s.totalLost > 0 ? 'accent' : ''}">${lostStr}<span class="stat-unit">lbs</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">To Go</div>
+      <div class="stat-value">${Math.max(0, s.toGo).toFixed(1)}<span class="stat-unit">lbs</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Progress</div>
+      <div class="stat-value">${s.pct.toFixed(0)}<span class="stat-unit">%</span></div>
+    </div>
+  `;
+}
+
+// ---------- render: progress ----------
+function renderProgress(s) {
+  document.getElementById('progress-fill').style.width = s.pct + '%';
+  document.getElementById('progress-marker').style.left = s.pct + '%';
+  document.getElementById('progress-start').textContent = settings.startWeight + ' lbs';
+  document.getElementById('progress-goal').textContent = 'Goal · ' + settings.goalWeight + ' lbs';
+  document.getElementById('start-display').textContent = settings.startWeight;
+  document.getElementById('goal-display').textContent = settings.goalWeight;
+}
+
+// ---------- render: chart (custom SVG) ----------
+function renderChart(s) {
+  const empty = document.getElementById('chart-empty');
+  const svg = document.getElementById('chart');
+  if (s.withAvg.length === 0) {
+    empty.classList.remove('hidden');
+    svg.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  svg.classList.remove('hidden');
+
+  const wrap = document.getElementById('chart-wrap');
+  const W = wrap.clientWidth;
+  const H = 280;
+  const padL = 38, padR = 16, padT = 14, padB = 32;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  const data = s.withAvg;
+  const allW = data.map(d => d.weight).concat([settings.startWeight, settings.goalWeight]);
+  const yMin = Math.min(...allW);
+  const yMax = Math.max(...allW);
+  const pad = Math.max(2, (yMax - yMin) * 0.15);
+  const yLo = Math.floor(yMin - pad);
+  const yHi = Math.ceil(yMax + pad);
+
+  const xAt = i => padL + (data.length === 1 ? innerW / 2 : (i / (data.length - 1)) * innerW);
+  const yAt = w => padT + innerH - ((w - yLo) / (yHi - yLo)) * innerH;
+
+  // build paths
+  const dailyPath = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.weight)).join(' ');
+  const avgPath = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.avg)).join(' ');
+
+  // y-axis ticks (4)
+  const tickCount = 4;
+  let yTicks = '';
+  for (let i = 0; i <= tickCount; i++) {
+    const v = yLo + (yHi - yLo) * (i / tickCount);
+    const y = yAt(v);
+    yTicks += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--rule)" stroke-width="1"/>`;
+    yTicks += `<text x="${padL - 8}" y="${y + 3}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+
+  // x-axis ticks (up to 6)
+  const maxXTicks = Math.min(data.length, 6);
+  let xTicks = '';
+  if (data.length > 1) {
+    for (let i = 0; i < maxXTicks; i++) {
+      const idx = Math.round((i / (maxXTicks - 1)) * (data.length - 1));
+      const x = xAt(idx);
+      xTicks += `<text x="${x}" y="${H - 12}" text-anchor="middle">${fmtDate(data[idx].date)}</text>`;
+    }
+  } else {
+    xTicks = `<text x="${xAt(0)}" y="${H - 12}" text-anchor="middle">${fmtDate(data[0].date)}</text>`;
+  }
+
+  // goal line
+  const goalY = yAt(settings.goalWeight);
+  const startY = yAt(settings.startWeight);
+
+  // dots for daily
+  let dots = '';
+  data.forEach((d, i) => {
+    dots += `<circle cx="${xAt(i)}" cy="${yAt(d.weight)}" r="3" fill="var(--ink)" data-idx="${i}"/>`;
+  });
+
+  // hit areas (invisible larger circles for touch)
+  let hits = '';
+  data.forEach((d, i) => {
+    hits += `<circle cx="${xAt(i)}" cy="${yAt(d.weight)}" r="18" fill="transparent" data-idx="${i}" class="hit"/>`;
+  });
+
+  svg.innerHTML = `
+    ${yTicks}
+    <line x1="${padL}" y1="${startY}" x2="${W - padR}" y2="${startY}" stroke="var(--rule)" stroke-dasharray="2 4" stroke-width="1"/>
+    <line x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}" stroke="var(--muted)" stroke-dasharray="4 4" stroke-width="1"/>
+    <text x="${W - padR}" y="${goalY - 4}" text-anchor="end" style="fill: var(--muted);">Goal ${settings.goalWeight}</text>
+    <path d="${avgPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <path d="${dailyPath}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+    ${dots}
+    ${xTicks}
+    ${hits}
+  `;
+
+  // tooltip interactions
+  const tooltip = document.getElementById('tooltip');
+  const hitEls = svg.querySelectorAll('.hit');
+  let activeIdx = null;
+
+  const showTooltip = (idx, evt) => {
+    const d = data[idx];
+    tooltip.innerHTML = `
+      <div class="tt-date">${fmtDateLong(d.date)}</div>
+      <div class="tt-row"><span>Daily</span><span class="tt-val">${d.weight.toFixed(1)} lbs</span></div>
+      <div class="tt-row"><span style="color: var(--accent);">7-day avg</span><span class="tt-val" style="color: var(--accent);">${d.avg.toFixed(1)} lbs</span></div>
+      ${d.notes ? `<div class="tt-row" style="border-top: 1px solid var(--rule); margin-top: 4px; padding-top: 4px;"><span style="font-style: italic; font-family: Fraunces, serif; color: var(--ink-soft);">${escapeHtml(d.notes)}</span></div>` : ''}
+    `;
+    tooltip.classList.add('visible');
+    const wrapRect = wrap.getBoundingClientRect();
+    const x = xAt(idx);
+    const y = yAt(d.weight);
+    const ttW = 170;
+    let left = x - ttW / 2;
+    if (left < 0) left = 4;
+    if (left + ttW > W) left = W - ttW - 4;
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = Math.max(0, y - 90) + 'px';
+    tooltip.style.width = ttW + 'px';
+  };
+
+  const hideTooltip = () => { tooltip.classList.remove('visible'); activeIdx = null; };
+
+  hitEls.forEach(el => {
+    el.addEventListener('mouseenter', e => showTooltip(parseInt(el.dataset.idx), e));
+    el.addEventListener('mouseleave', hideTooltip);
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const idx = parseInt(el.dataset.idx);
+      if (activeIdx === idx) { hideTooltip(); }
+      else { activeIdx = idx; showTooltip(idx, e); }
+    }, { passive: false });
+  });
+
+  // dismiss tooltip when tapping outside chart
+  document.addEventListener('touchstart', (e) => {
+    if (!wrap.contains(e.target)) hideTooltip();
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// ---------- render: insights ----------
+function renderInsights(s) {
+  const el = document.getElementById('insights');
+  if (s.weeklyRate === null) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+
+  const rate = s.weeklyRate;
+  let note;
+  if (rate >= 1.5) note = 'Strong pace — typical for early semaglutide.';
+  else if (rate >= 0.5) note = 'Healthy, sustainable rate.';
+  else if (rate >= 0) note = 'Gentle progress — give it time.';
+  else note = 'Trending up. Worth checking in with your doctor.';
+
+  const projStr = s.projectedDate
+    ? s.projectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—';
+  const projNote = s.projectedDate
+    ? `At current pace, about ${Math.round(daysBetween(todayISO(), s.projectedDate.toISOString().split('T')[0]))} days away.`
+    : 'Need more data or a positive trend to project.';
+
+  el.innerHTML = `
+    <div class="insight">
+      <div class="insight-label">Weekly pace</div>
+      <div class="insight-value">${rate >= 0 ? '−' : '+'}${Math.abs(rate).toFixed(2)}<span class="insight-unit">lbs/wk</span></div>
+      <div class="insight-note">${note}</div>
+    </div>
+    <div class="insight">
+      <div class="insight-label">Projected goal</div>
+      <div class="insight-value">${projStr}</div>
+      <div class="insight-note">${projNote}</div>
+    </div>
+    <div class="insight">
+      <div class="insight-label">Days tracked</div>
+      <div class="insight-value">${Math.round(s.daysTracked)}<span class="insight-unit">days</span></div>
+      <div class="insight-note">${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} logged.</div>
+    </div>
+  `;
+}
+
+// ---------- render: entries ----------
+function renderEntries(s) {
+  const card = document.getElementById('entries-card');
+  const list = document.getElementById('entries-list');
+  if (s.sorted.length === 0) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+
+  const reversed = s.sorted.slice().reverse();
+  list.innerHTML = reversed.map((e, i) => {
+    const prev = s.sorted[s.sorted.length - 2 - i];
+    const delta = prev ? e.weight - prev.weight : null;
+    const deltaClass = delta === null ? '' : (delta < 0 ? 'down' : delta > 0 ? 'up' : '');
+    const deltaStr = delta === null ? '' : (delta > 0 ? '+' : '') + delta.toFixed(1);
+    return `
+      <div class="entry" data-date="${e.date}">
+        <div class="entry-date">${fmtDateLong(e.date)}</div>
+        <div class="entry-weight">${e.weight.toFixed(1)} <span class="entry-unit">lbs</span></div>
+        <div class="entry-delta ${deltaClass}">${deltaStr}</div>
+        <button class="delete-btn" aria-label="delete" data-date="${e.date}">×</button>
+        ${e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  list.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm('Delete this entry?')) {
+        entries = entries.filter(e => e.date !== btn.dataset.date);
+        saveEntries();
+        render();
+      }
+    });
+  });
+}
+
+// ---------- render: all ----------
+function render() {
+  const s = compute();
+  renderStats(s);
+  renderProgress(s);
+  renderChart(s);
+  renderInsights(s);
+  renderEntries(s);
+}
+
+// ---------- events ----------
+function setupEvents() {
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('input-date').value = todayISO();
+  document.getElementById('input-date').max = todayISO();
+
+  document.getElementById('add-btn').addEventListener('click', () => {
+    const w = parseFloat(document.getElementById('input-weight').value);
+    const d = document.getElementById('input-date').value;
+    const n = document.getElementById('input-notes').value.trim();
+    if (!isFinite(w) || w <= 0 || w > 1000) {
+      document.getElementById('input-weight').focus();
+      return;
+    }
+    if (!d) return;
+    const idx = entries.findIndex(e => e.date === d);
+    if (idx >= 0) entries[idx] = { date: d, weight: w, notes: n };
+    else entries.push({ date: d, weight: w, notes: n });
+    entries.sort((a, b) => a.date.localeCompare(b.date));
+    saveEntries();
+    document.getElementById('input-weight').value = '';
+    document.getElementById('input-notes').value = '';
+    document.getElementById('input-date').value = todayISO();
+    render();
+  });
+
+  document.getElementById('settings-btn').addEventListener('click', () => {
+    document.getElementById('draft-start').value = settings.startWeight;
+    document.getElementById('draft-goal').value = settings.goalWeight;
+    document.getElementById('settings-edit').classList.remove('hidden');
+    document.getElementById('settings-btn').classList.add('hidden');
+  });
+
+  document.getElementById('settings-cancel').addEventListener('click', () => {
+    document.getElementById('settings-edit').classList.add('hidden');
+    document.getElementById('settings-btn').classList.remove('hidden');
+  });
+
+  document.getElementById('settings-save').addEventListener('click', () => {
+    const s = parseFloat(document.getElementById('draft-start').value);
+    const g = parseFloat(document.getElementById('draft-goal').value);
+    if (!isFinite(s) || !isFinite(g) || s <= 0 || g <= 0) return;
+    settings.startWeight = s;
+    settings.goalWeight = g;
+    saveSettings();
+    document.getElementById('settings-edit').classList.add('hidden');
+    document.getElementById('settings-btn').classList.remove('hidden');
+    render();
+  });
+
+  window.addEventListener('resize', () => render());
+}
+
+// ---------- init ----------
+loadState();
+setupEvents();
+// wait for fonts so chart sizes are correct
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => render());
+} else {
+  setTimeout(render, 100);
+}
+render();
+</script>
+</body>
+</html>
