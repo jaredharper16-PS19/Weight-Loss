@@ -654,6 +654,149 @@
     border-top: 1px solid var(--rule);
   }
 
+  /* ---------- select (medication log) ---------- */
+  select {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 12px 12px;
+    font-size: 16px;
+    color: var(--ink);
+    width: 100%;
+    font-family: 'Geist', sans-serif;
+    border-radius: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%238B8680' stroke-width='1.5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  select:focus { outline: none; border-color: var(--ink); }
+
+  /* ---------- 30-day legend line ---------- */
+  .legend-line.avg30 { border-top: 2px solid var(--muted); }
+
+  /* ---------- consistency / streaks ---------- */
+  .streak-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+  }
+  @media (min-width: 480px) { .streak-grid { grid-template-columns: repeat(4, 1fr); } }
+  .streak {
+    padding: 14px 14px 16px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .streak-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .streak-value {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .streak-unit {
+    font-family: 'Geist', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  /* ---------- milestones ---------- */
+  .milestones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .milestone {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 11px;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    background: var(--paper);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .milestone .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--rule);
+    flex-shrink: 0;
+  }
+  .milestone.reached { color: var(--ink); border-color: var(--ink); }
+  .milestone.reached .dot { background: var(--accent); }
+  .milestone.next { border-color: var(--secondary); color: var(--ink-soft); }
+  .milestone.next .dot { background: var(--secondary); }
+
+  /* ---------- weekly summary ---------- */
+  .weeks { border-top: 1px solid var(--rule); }
+  .week-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .week-label {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+  }
+  .week-avg {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .week-avg .u { font-family: 'Geist', sans-serif; font-size: 10px; color: var(--muted); font-weight: 400; }
+  .week-change {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    min-width: 44px;
+    text-align: right;
+    color: var(--muted);
+  }
+  .week-change.down { color: var(--accent); }
+  .week-change.up { color: var(--ink); }
+
+  /* ---------- entry meta tags ---------- */
+  .entry-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    background: var(--paper);
+  }
+  .tag.dose { border-color: var(--secondary-soft); }
+  .tag.side { border-color: var(--accent-soft); }
+
   .hidden { display: none !important; }
 </style>
 </head>
@@ -718,6 +861,7 @@
     <div class="legend">
       <span class="legend-item"><span class="legend-line daily"></span> daily</span>
       <span class="legend-item"><span class="legend-line avg"></span> 7-day avg</span>
+      <span class="legend-item"><span class="legend-line avg30"></span> 30-day avg</span>
       <span class="legend-item"><span class="legend-line goal"></span> goal</span>
     </div>
   </div>
@@ -730,7 +874,18 @@
   </div>
 </section>
 
+<section class="card hidden" id="weekly-card">
+  <h2>By the Week</h2>
+  <div class="weeks" id="weeks-list"></div>
+</section>
+
 <section class="insights hidden" id="insights"></section>
+
+<section class="card hidden" id="streak-card">
+  <h2>Consistency</h2>
+  <div class="streak-grid" id="streak-grid"></div>
+  <div class="milestones" id="milestones"></div>
+</section>
 
 <section class="card">
   <h2>Log Today</h2>
@@ -746,9 +901,28 @@
       <label>Weight (lbs)</label>
       <input type="number" inputmode="decimal" step="0.1" placeholder="190.5" id="input-weight">
     </div>
+    <div class="field">
+      <label>Dose (optional)</label>
+      <input type="text" inputmode="decimal" placeholder="e.g. 0.5 mg" id="input-dose">
+    </div>
+    <div class="field">
+      <label>Mood (optional)</label>
+      <select id="input-mood">
+        <option value="">—</option>
+        <option value="Great">Great</option>
+        <option value="Good">Good</option>
+        <option value="Okay">Okay</option>
+        <option value="Low">Low</option>
+        <option value="Rough">Rough</option>
+      </select>
+    </div>
+    <div class="field full">
+      <label>Side effects (optional)</label>
+      <input type="text" placeholder="nausea, fatigue, headache…" id="input-side">
+    </div>
     <div class="field full">
       <label>Notes (optional)</label>
-      <input type="text" placeholder="dose taken, side effects, mood…" id="input-notes">
+      <input type="text" placeholder="anything else…" id="input-notes">
     </div>
   </div>
   <button class="primary" id="add-btn">Record</button>
@@ -780,7 +954,7 @@
   </div>
 </section>
 
-<footer class="footer">Data lives in your browser only · v2</footer>
+<footer class="footer">Data lives in your browser only · v3</footer>
 
 <script>
 'use strict';
@@ -902,17 +1076,111 @@ function compute() {
   }
 
   const withAvg = sorted.map((entry, i) => {
-    const win = sorted.slice(Math.max(0, i - 6), i + 1);
-    const avg = win.reduce((s, e) => s + e.weight, 0) / win.length;
-    return { ...entry, avg: parseFloat(avg.toFixed(2)) };
+    const win7 = sorted.slice(Math.max(0, i - 6), i + 1);
+    const avg = win7.reduce((s, e) => s + e.weight, 0) / win7.length;
+    const win30 = sorted.slice(Math.max(0, i - 29), i + 1);
+    const avg30 = win30.reduce((s, e) => s + e.weight, 0) / win30.length;
+    return { ...entry, avg: parseFloat(avg.toFixed(2)), avg30: parseFloat(avg30.toFixed(2)) };
   });
 
-  return { sorted, current, totalLost, toGo, pct, weeklyRate, projectedDate, daysTracked, withAvg };
+  // lowest weight on record
+  const lowest = sorted.length ? Math.min(...sorted.map(e => e.weight)) : null;
+
+  // change since previous entry
+  const lastDelta = sorted.length >= 2
+    ? sorted[sorted.length - 1].weight - sorted[sorted.length - 2].weight
+    : null;
+
+  // change over a rolling number of days
+  function changeOverDays(n) {
+    if (sorted.length < 2) return null;
+    const last = sorted[sorted.length - 1];
+    const lastT = new Date(last.date + 'T00:00:00').getTime();
+    const targetT = lastT - n * 86400000;
+    const oldestT = new Date(sorted[0].date + 'T00:00:00').getTime();
+    if (oldestT > targetT) return null; // not enough history yet
+    let baseline = sorted[0];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      if (new Date(sorted[i].date + 'T00:00:00').getTime() <= targetT) { baseline = sorted[i]; break; }
+    }
+    return last.weight - baseline.weight;
+  }
+  const change7 = changeOverDays(7);
+  const change30 = changeOverDays(30);
+
+  // streaks & consistency
+  const dateSet = new Set(sorted.map(e => e.date));
+  const uniqueDates = [...dateSet].sort();
+  let currentStreak = 0;
+  if (sorted.length) {
+    let d = new Date(sorted[sorted.length - 1].date + 'T00:00:00');
+    while (dateSet.has(d.toISOString().split('T')[0])) {
+      currentStreak++;
+      d.setDate(d.getDate() - 1);
+    }
+  }
+  let longestStreak = 0, run = 0;
+  for (let i = 0; i < uniqueDates.length; i++) {
+    if (i === 0) run = 1;
+    else {
+      const diff = Math.round(daysBetween(uniqueDates[i - 1], uniqueDates[i]));
+      run = diff === 1 ? run + 1 : 1;
+    }
+    if (run > longestStreak) longestStreak = run;
+  }
+  const daysSinceLast = sorted.length ? Math.round(daysBetween(sorted[sorted.length - 1].date, todayISO())) : null;
+  let consistency = null;
+  if (uniqueDates.length) {
+    const spanDays = Math.max(1, Math.round(daysBetween(uniqueDates[0], todayISO())) + 1);
+    consistency = Math.min(100, (uniqueDates.length / spanDays) * 100);
+  }
+
+  // most recent logged dose
+  let currentDose = null;
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (sorted[i].dose) { currentDose = sorted[i].dose; break; }
+  }
+
+  // milestones
+  const milestones = [];
+  milestones.push({ label: 'First entry', reached: sorted.length >= 1 });
+  if (totalToLose > 0) {
+    for (let lb = 5; lb < totalToLose; lb += 5) {
+      milestones.push({ label: lb + ' lbs down', reached: totalLost >= lb });
+    }
+    milestones.push({ label: 'Halfway', reached: pct >= 50 });
+    milestones.push({ label: 'Goal reached', reached: current <= settings.goalWeight && sorted.length >= 1 });
+  }
+
+  // weekly summary (weeks start Monday)
+  const wkBuckets = {};
+  sorted.forEach(e => {
+    const dd = new Date(e.date + 'T00:00:00');
+    const dow = (dd.getDay() + 6) % 7;
+    const monday = new Date(dd);
+    monday.setDate(dd.getDate() - dow);
+    const key = monday.toISOString().split('T')[0];
+    (wkBuckets[key] = wkBuckets[key] || []).push(e.weight);
+  });
+  const weeks = Object.keys(wkBuckets).sort().map(k => {
+    const arr = wkBuckets[k];
+    return { weekStart: k, avg: arr.reduce((s, w) => s + w, 0) / arr.length, count: arr.length };
+  });
+  weeks.forEach((w, i) => { w.change = i > 0 ? w.avg - weeks[i - 1].avg : null; });
+
+  return {
+    sorted, current, totalLost, toGo, pct, weeklyRate, projectedDate, daysTracked, withAvg,
+    lowest, lastDelta, change7, change30,
+    currentStreak, longestStreak, daysSinceLast, consistency, currentDose,
+    milestones, weeks
+  };
 }
 
 // ---------- render: stats ----------
 function renderStats(s) {
   const lostStr = s.totalLost >= 0 ? `−${s.totalLost.toFixed(1)}` : `+${Math.abs(s.totalLost).toFixed(1)}`;
+  const fmtDelta = (v) => v === null ? '—' : (v < 0 ? '−' : v > 0 ? '+' : '') + Math.abs(v).toFixed(1);
+  const deltaCls = (v) => (v !== null && v < 0) ? 'accent' : '';
   document.getElementById('stats').innerHTML = `
     <div class="stat">
       <div class="stat-label">Current</div>
@@ -929,6 +1197,22 @@ function renderStats(s) {
     <div class="stat">
       <div class="stat-label">Progress</div>
       <div class="stat-value">${s.pct.toFixed(0)}<span class="stat-unit">%</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Lowest</div>
+      <div class="stat-value">${s.lowest === null ? '—' : s.lowest.toFixed(1)}<span class="stat-unit">lbs</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Since Last</div>
+      <div class="stat-value ${deltaCls(s.lastDelta)}">${fmtDelta(s.lastDelta)}<span class="stat-unit">lbs</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">7-Day</div>
+      <div class="stat-value ${deltaCls(s.change7)}">${fmtDelta(s.change7)}<span class="stat-unit">lbs</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">30-Day</div>
+      <div class="stat-value ${deltaCls(s.change30)}">${fmtDelta(s.change30)}<span class="stat-unit">lbs</span></div>
     </div>
   `;
 }
@@ -979,6 +1263,7 @@ function renderChart(s) {
 
   const dailyPath = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.weight)).join(' ');
   const avgPath = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.avg)).join(' ');
+  const avg30Path = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.avg30)).join(' ');
 
   const tickCount = 4;
   let yTicks = '';
@@ -1019,6 +1304,7 @@ function renderChart(s) {
     <line x1="${padL}" y1="${startY}" x2="${W - padR}" y2="${startY}" stroke="var(--rule)" stroke-dasharray="2 4" stroke-width="1"/>
     <line x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}" stroke="var(--secondary)" stroke-dasharray="4 4" stroke-width="1.25"/>
     <text x="${W - padR}" y="${goalY - 4}" text-anchor="end" style="fill: var(--secondary);">Goal ${settings.goalWeight}</text>
+    <path d="${avg30Path}" fill="none" stroke="var(--muted)" stroke-width="2" opacity="0.7"/>
     <path d="${avgPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
     <path d="${dailyPath}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
     ${dots}
@@ -1036,6 +1322,7 @@ function renderChart(s) {
       <div class="tt-date">${fmtDateLong(d.date)}</div>
       <div class="tt-row"><span>Daily</span><span class="tt-val">${d.weight.toFixed(1)} lbs</span></div>
       <div class="tt-row"><span style="color: var(--accent);">7-day avg</span><span class="tt-val" style="color: var(--accent);">${d.avg.toFixed(1)} lbs</span></div>
+      ${d.dose ? `<div class="tt-row"><span>Dose</span><span class="tt-val">${escapeHtml(d.dose)}</span></div>` : ''}
       ${d.notes ? `<div class="tt-row" style="border-top: 1px solid var(--rule); margin-top: 4px; padding-top: 4px;"><span style="font-style: italic; font-family: Fraunces, serif; color: var(--ink-soft);">${escapeHtml(d.notes)}</span></div>` : ''}
     `;
     tooltip.classList.add('visible');
@@ -1107,6 +1394,59 @@ function renderInsights(s) {
   `;
 }
 
+// ---------- render: streaks & milestones ----------
+function renderStreaks(s) {
+  const card = document.getElementById('streak-card');
+  if (s.sorted.length === 0) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+
+  const grid = document.getElementById('streak-grid');
+  const cells = [
+    { label: 'Current streak', value: s.currentStreak, unit: s.currentStreak === 1 ? 'day' : 'days' },
+    { label: 'Longest streak', value: s.longestStreak, unit: s.longestStreak === 1 ? 'day' : 'days' },
+    { label: 'Days logged', value: s.consistency === null ? '—' : Math.round(s.consistency), unit: s.consistency === null ? '' : '%' },
+    s.currentDose
+      ? { label: 'Current dose', value: s.currentDose, unit: '' }
+      : { label: 'Last logged', value: s.daysSinceLast === 0 ? 'Today' : s.daysSinceLast, unit: s.daysSinceLast === 0 ? '' : (s.daysSinceLast === 1 ? 'day ago' : 'days ago') }
+  ];
+  grid.innerHTML = cells.map(c => `
+    <div class="streak">
+      <div class="streak-label">${c.label}</div>
+      <div class="streak-value">${c.value}${c.unit ? `<span class="streak-unit">${c.unit}</span>` : ''}</div>
+    </div>
+  `).join('');
+
+  const ms = document.getElementById('milestones');
+  let nextMarked = false;
+  ms.innerHTML = s.milestones.map(m => {
+    let cls = 'milestone';
+    if (m.reached) cls += ' reached';
+    else if (!nextMarked) { cls += ' next'; nextMarked = true; }
+    return `<span class="${cls}"><span class="dot"></span>${m.label}</span>`;
+  }).join('');
+}
+
+// ---------- render: weekly summary ----------
+function renderWeekly(s) {
+  const card = document.getElementById('weekly-card');
+  const list = document.getElementById('weeks-list');
+  if (!s.weeks || s.weeks.length < 2) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+
+  const recent = s.weeks.slice().reverse().slice(0, 8);
+  list.innerHTML = recent.map(w => {
+    const chgCls = w.change === null ? '' : (w.change < 0 ? 'down' : w.change > 0 ? 'up' : '');
+    const chgStr = w.change === null ? '—' : (w.change < 0 ? '−' : w.change > 0 ? '+' : '') + Math.abs(w.change).toFixed(1);
+    return `
+      <div class="week-row">
+        <span class="week-label">Week of ${fmtDate(w.weekStart)}</span>
+        <span class="week-avg">${w.avg.toFixed(1)}<span class="u"> lbs avg</span></span>
+        <span class="week-change ${chgCls}">${chgStr}</span>
+      </div>
+    `;
+  }).join('');
+}
+
 // ---------- render: entries ----------
 function renderEntries(s) {
   const card = document.getElementById('entries-card');
@@ -1126,6 +1466,11 @@ function renderEntries(s) {
         <div class="entry-weight">${e.weight.toFixed(1)} <span class="entry-unit">lbs</span></div>
         <div class="entry-delta ${deltaClass}">${deltaStr}</div>
         <button class="delete-btn" aria-label="delete" data-date="${e.date}">×</button>
+        ${(e.dose || e.mood || e.side) ? `<div class="entry-meta">
+          ${e.dose ? `<span class="tag dose">${escapeHtml(e.dose)}</span>` : ''}
+          ${e.mood ? `<span class="tag mood">${escapeHtml(e.mood)}</span>` : ''}
+          ${e.side ? `<span class="tag side">${escapeHtml(e.side)}</span>` : ''}
+        </div>` : ''}
         ${e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
       </div>
     `;
@@ -1167,7 +1512,9 @@ function render() {
   renderStats(s);
   renderProgress(s);
   renderChart(s);
+  renderWeekly(s);
   renderInsights(s);
+  renderStreaks(s);
   renderEntries(s);
   applyColors();
 }
@@ -1182,18 +1529,25 @@ function setupEvents() {
     const w = parseFloat(document.getElementById('input-weight').value);
     const d = document.getElementById('input-date').value;
     const n = document.getElementById('input-notes').value.trim();
+    const dose = document.getElementById('input-dose').value.trim();
+    const mood = document.getElementById('input-mood').value;
+    const side = document.getElementById('input-side').value.trim();
     if (!isFinite(w) || w <= 0 || w > 1000) {
       document.getElementById('input-weight').focus();
       return;
     }
     if (!d) return;
+    const rec = { date: d, weight: w, notes: n, dose, mood, side };
     const idx = entries.findIndex(e => e.date === d);
-    if (idx >= 0) entries[idx] = { date: d, weight: w, notes: n };
-    else entries.push({ date: d, weight: w, notes: n });
+    if (idx >= 0) entries[idx] = rec;
+    else entries.push(rec);
     entries.sort((a, b) => a.date.localeCompare(b.date));
     saveEntries();
     document.getElementById('input-weight').value = '';
     document.getElementById('input-notes').value = '';
+    document.getElementById('input-dose').value = '';
+    document.getElementById('input-mood').value = '';
+    document.getElementById('input-side').value = '';
     document.getElementById('input-date').value = todayISO();
     render();
   });
