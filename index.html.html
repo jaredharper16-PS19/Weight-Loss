@@ -674,7 +674,7 @@
   select:focus { outline: none; border-color: var(--ink); }
 
   /* ---------- 30-day legend line ---------- */
-  .legend-line.avg30 { border-top: 2px solid var(--muted); }
+  .legend-line.avg30 { border-top: 2px solid var(--secondary); }
 
   /* ---------- consistency / streaks ---------- */
   .streak-grid {
@@ -797,6 +797,50 @@
   .tag.dose { border-color: var(--secondary-soft); }
   .tag.side { border-color: var(--accent-soft); }
 
+  /* ===== expanded palette theming ===== */
+  ::selection { background: var(--accent); color: var(--paper); }
+  ::-moz-selection { background: var(--accent); color: var(--paper); }
+
+  /* masthead rules: thicker + dual-color */
+  .rule { background: var(--secondary); height: 2px; transition: background 0.4s ease; }
+  .rule::after { background: var(--accent); width: 90px; height: 2px; top: 0; }
+  .masthead-top { border-bottom-color: var(--secondary-soft); transition: border-color 0.4s ease; }
+
+  /* section headings: sub-color underline + haloed dot */
+  h2 { border-bottom: 1px solid var(--secondary-soft); padding-bottom: 10px; transition: border-color 0.4s ease; }
+  h2::before { box-shadow: 0 0 0 3px var(--secondary-soft); transition: background 0.4s ease, box-shadow 0.4s ease; }
+
+  /* cards + stat grid framed in sub-color */
+  .card { border-top: 2px solid var(--secondary-soft); transition: border-color 0.4s ease, background 0.4s ease; }
+  .stats { border-top: 2px solid var(--secondary-soft); transition: border-color 0.4s ease; }
+  .stat-value.big { color: var(--accent); transition: color 0.4s ease; }
+  .stat-label, .streak-label { transition: color 0.4s ease; }
+
+  /* progress marker in sub-color */
+  .progress-marker { background: var(--secondary); transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease; }
+
+  /* streak / averages frames + accent values */
+  .streak-grid { border-top-color: var(--secondary-soft); border-left-color: var(--secondary-soft); }
+  .streak-value { transition: color 0.4s ease; }
+  .streak-value.accent { color: var(--accent); }
+
+  /* milestones: reached rings in main color */
+  .milestone.reached { border-color: var(--accent); }
+
+  /* insights: alternate main / sub left borders */
+  .insight:nth-child(2n) { border-left-color: var(--accent); }
+  .insight-value { transition: color 0.4s ease; }
+
+  /* mood tag in sub-color */
+  .tag.mood { border-color: var(--secondary-soft); }
+
+  /* focus states glow in main color */
+  input[type="date"]:focus, input[type="number"]:focus, input[type="text"]:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
   .hidden { display: none !important; }
 </style>
 </head>
@@ -887,6 +931,11 @@
   <div class="milestones" id="milestones"></div>
 </section>
 
+<section class="card hidden" id="averages-card">
+  <h2>Averages &amp; Trends</h2>
+  <div class="streak-grid" id="averages-grid"></div>
+</section>
+
 <section class="card">
   <h2>Log Today</h2>
   <p class="form-hint">
@@ -954,7 +1003,7 @@
   </div>
 </section>
 
-<footer class="footer">Data lives in your browser only · v3</footer>
+<footer class="footer">Data lives in your browser only · v4</footer>
 
 <script>
 'use strict';
@@ -1168,11 +1217,35 @@ function compute() {
   });
   weeks.forEach((w, i) => { w.change = i > 0 ? w.avg - weeks[i - 1].avg : null; });
 
+  // ---- averages & trends ----
+  const avg7now = withAvg.length ? withAvg[withAvg.length - 1].avg : null;
+  const avg30now = withAvg.length ? withAvg[withAvg.length - 1].avg30 : null;
+  const allTimeAvg = sorted.length ? sorted.reduce((s, e) => s + e.weight, 0) / sorted.length : null;
+
+  // average change per day / per week across the whole record (negative = losing)
+  let avgPerDay = null, avgPerWeek = null;
+  if (sorted.length >= 2 && daysTracked > 0) {
+    avgPerDay = (sorted[sorted.length - 1].weight - sorted[0].weight) / daysTracked;
+    avgPerWeek = avgPerDay * 7;
+  }
+
+  // best (biggest drop) and steadiest weekly change
+  const wkChanges = weeks.map(w => w.change).filter(c => c !== null);
+  const bestWeek = wkChanges.length ? Math.min(...wkChanges) : null;
+
+  // last 4 weeks average weekly change (recent pace)
+  let recentWeekly = null;
+  if (wkChanges.length) {
+    const recent = wkChanges.slice(-4);
+    recentWeekly = recent.reduce((s, c) => s + c, 0) / recent.length;
+  }
+
   return {
     sorted, current, totalLost, toGo, pct, weeklyRate, projectedDate, daysTracked, withAvg,
     lowest, lastDelta, change7, change30,
     currentStreak, longestStreak, daysSinceLast, consistency, currentDose,
-    milestones, weeks
+    milestones, weeks,
+    avg7now, avg30now, allTimeAvg, avgPerDay, avgPerWeek, bestWeek, recentWeekly
   };
 }
 
@@ -1304,7 +1377,7 @@ function renderChart(s) {
     <line x1="${padL}" y1="${startY}" x2="${W - padR}" y2="${startY}" stroke="var(--rule)" stroke-dasharray="2 4" stroke-width="1"/>
     <line x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}" stroke="var(--secondary)" stroke-dasharray="4 4" stroke-width="1.25"/>
     <text x="${W - padR}" y="${goalY - 4}" text-anchor="end" style="fill: var(--secondary);">Goal ${settings.goalWeight}</text>
-    <path d="${avg30Path}" fill="none" stroke="var(--muted)" stroke-width="2" opacity="0.7"/>
+    <path d="${avg30Path}" fill="none" stroke="var(--secondary)" stroke-width="2" opacity="0.75"/>
     <path d="${avgPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
     <path d="${dailyPath}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
     ${dots}
@@ -1447,6 +1520,32 @@ function renderWeekly(s) {
   }).join('');
 }
 
+// ---------- render: averages & trends ----------
+function renderAverages(s) {
+  const card = document.getElementById('averages-card');
+  if (s.sorted.length < 2) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+
+  const lbs = v => v === null ? '—' : v.toFixed(1);
+  const delta = v => v === null ? '—' : (v < 0 ? '−' : v > 0 ? '+' : '') + Math.abs(v).toFixed(1);
+  const dCls = v => (v !== null && v < 0) ? 'accent' : '';
+
+  const cells = [
+    { label: '7-day average', value: lbs(s.avg7now), unit: 'lbs' },
+    { label: '30-day average', value: lbs(s.avg30now), unit: 'lbs' },
+    { label: 'All-time average', value: lbs(s.allTimeAvg), unit: 'lbs' },
+    { label: 'Avg / week', value: delta(s.avgPerWeek), unit: 'lbs', cls: dCls(s.avgPerWeek) },
+    { label: 'Recent pace (4 wk)', value: delta(s.recentWeekly), unit: 'lbs/wk', cls: dCls(s.recentWeekly) },
+    { label: 'Best week', value: delta(s.bestWeek), unit: 'lbs', cls: dCls(s.bestWeek) }
+  ];
+  document.getElementById('averages-grid').innerHTML = cells.map(c => `
+    <div class="streak">
+      <div class="streak-label">${c.label}</div>
+      <div class="streak-value ${c.cls || ''}">${c.value}<span class="streak-unit">${c.unit}</span></div>
+    </div>
+  `).join('');
+}
+
 // ---------- render: entries ----------
 function renderEntries(s) {
   const card = document.getElementById('entries-card');
@@ -1515,6 +1614,7 @@ function render() {
   renderWeekly(s);
   renderInsights(s);
   renderStreaks(s);
+  renderAverages(s);
   renderEntries(s);
   applyColors();
 }
