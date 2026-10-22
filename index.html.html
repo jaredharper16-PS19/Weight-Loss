@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#F5F1E8">
+<meta name="theme-color" content="#EDF0EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1412" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Weight Journal">
@@ -11,1952 +12,1051 @@
 <title>The Weight Journal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  :root {
-    --paper: #F5F1E8;
-    --paper-warm: #EFE9DB;
-    --ink: #1C1C1A;
-    --ink-soft: #3A3935;
-    --muted: #8B8680;
-    --rule: #D9D2C0;
-    --accent: #B8453A;
-    --secondary: #4A6B7C;
-    --accent-soft: color-mix(in srgb, var(--accent) 20%, var(--paper));
-    --secondary-soft: color-mix(in srgb, var(--secondary) 18%, var(--paper));
-    --safe-top: env(safe-area-inset-top);
-    --safe-bottom: env(safe-area-inset-bottom);
+/* Layout: an app shell. Short top bar, one page at a time sized to a phone screen, fixed tab bar at the bottom. */
+:root {
+  --bg: #EDF0EE;
+  --surface: #FAFBFA;
+  --sunk: #E3E8E5;
+  --ink: #14201C;
+  --muted: #5A6862;
+  --line: #D3DAD6;
+  --trend: #1F6F5C;
+  --trend-soft: rgba(31, 111, 92, 0.12);
+  --long: #6B5FB5;
+  --goal: #A86D12;
+  --up: #B4443A;
+  --bar: rgba(250, 251, 250, 0.94);
+  --f-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --f-body: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --r: 10px;
+  --nav-h: 60px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1412; --surface: #151D1A; --sunk: #1B2622; --ink: #E4EBE7; --muted: #93A29B;
+    --line: #26312D; --trend: #4FBF9F; --trend-soft: rgba(79, 191, 159, 0.14); --long: #A79CF0;
+    --goal: #E0A447; --up: #E8766B; --bar: rgba(21, 29, 26, 0.94); color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1412; --surface: #151D1A; --sunk: #1B2622; --ink: #E4EBE7; --muted: #93A29B;
+  --line: #26312D; --trend: #4FBF9F; --trend-soft: rgba(79, 191, 159, 0.14); --long: #A79CF0;
+  --goal: #E0A447; --up: #E8766B; --bar: rgba(21, 29, 26, 0.94); color-scheme: dark;
+}
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: 'Geist', -apple-system, sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-    padding: calc(20px + var(--safe-top)) 18px calc(40px + var(--safe-bottom));
-    max-width: 720px;
-    margin: 0 auto;
-  }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 640px; margin: 0 auto; padding-block: 12px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 20px); display: flex; flex-direction: column; gap: 12px; }
+h1, h2 { font-family: var(--f-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: 22px; font-weight: 700; }
+h2 { font-size: 16px; font-weight: 600; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--trend); outline-offset: 2px; }
+.down { color: var(--trend); }
+.up { color: var(--up); }
 
-  /* ---------- masthead ---------- */
-  .masthead-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 20px;
-    gap: 12px;
-  }
-  .masthead-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .palette-trigger {
-    display: inline-flex;
-    background: transparent;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    gap: 4px;
-    align-items: center;
-  }
-  .palette-trigger .swatch {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    display: inline-block;
-    border: 1px solid var(--rule);
-  }
-  .palette-trigger .swatch.s1 { background: var(--accent); }
-  .palette-trigger .swatch.s2 { background: var(--secondary); }
+/* top bar */
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 32px; }
+.status { display: inline-flex; align-items: center; gap: 8px; }
+.sync { display: inline-flex; align-items: center; gap: 6px; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-state="live"]::before { background: var(--trend); }
+.sync[data-state="off"]::before { background: var(--up); }
+.demo-badge { font-family: var(--f-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; border: 1px dashed var(--goal); color: var(--goal); }
 
-  h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: clamp(36px, 9vw, 56px);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    margin: 0;
-    font-variation-settings: "opsz" 144;
-  }
-  h1 .num {
-    font-style: italic;
-    font-weight: 300;
-    color: var(--accent);
-    transition: color 0.4s ease;
-  }
-  .rule {
-    height: 1px;
-    background: var(--ink);
-    margin: 18px 0 0;
-    position: relative;
-  }
-  .rule::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 0;
-    width: 60px;
-    height: 1px;
-    background: var(--secondary);
-    transition: background 0.4s ease;
-  }
-  .masthead { margin-bottom: 28px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.notice { border-radius: var(--r); padding: 10px 12px; background: var(--surface); border: 1px solid var(--up); font-size: 14px; }
 
-  /* ---------- palette panel ---------- */
-  .palette-panel {
-    background: var(--paper-warm);
-    border: 1px solid var(--rule);
-    padding: 20px 18px;
-    margin-bottom: 24px;
-    animation: slideDown 0.25s ease-out;
-  }
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .palette-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  .palette-header h3 {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 20px;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-  .palette-close {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 22px;
-    line-height: 1;
-    padding: 4px 8px;
-    cursor: pointer;
-  }
-  .palette-section { margin-bottom: 18px; }
-  .palette-section:last-child { margin-bottom: 0; }
-  .palette-section-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  .preset-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-  @media (min-width: 480px) { .preset-grid { grid-template-columns: repeat(3, 1fr); } }
-  .preset {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    padding: 10px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: border-color 0.15s;
-    text-align: left;
-  }
-  .preset:active, .preset.active { border-color: var(--ink); }
-  .preset-dots {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .preset-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-  }
-  .preset-name {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 13px;
-    color: var(--ink);
-  }
-  .custom-pickers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .picker-field {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    padding: 10px 12px;
-  }
-  .picker-field label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 0;
-  }
-  input[type="color"] {
-    -webkit-appearance: none;
-    appearance: none;
-    border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    padding: 0;
-    cursor: pointer;
-    background: transparent;
-    flex-shrink: 0;
-  }
-  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
-  input[type="color"]::-webkit-color-swatch { border: 1px solid var(--rule); border-radius: 50%; }
-  input[type="color"]::-moz-color-swatch { border: 1px solid var(--rule); border-radius: 50%; }
-  .palette-reset {
-    background: transparent;
-    color: var(--muted);
-    border: none;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 8px 0 0;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    cursor: pointer;
-  }
+/* readout */
+.readout { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.big { font-family: var(--f-display); font-weight: 700; font-size: clamp(52px, 14vw, 72px); line-height: .92; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.big-unit { font-family: var(--f-mono); font-size: 14px; color: var(--muted); margin-left: 4px; }
+.readout-side { display: flex; gap: 16px; }
+.mini { display: flex; flex-direction: column; gap: 1px; text-align: right; }
+.mini .v { font-family: var(--f-mono); font-size: 19px; font-weight: 500; font-variant-numeric: tabular-nums; }
 
-  /* ---------- stats ---------- */
-  .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    margin-bottom: 28px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .stat {
-    padding: 16px 16px 18px 0;
-    border-bottom: 1px solid var(--rule);
-    border-right: 1px solid var(--rule);
-  }
-  .stat:nth-child(2n) { border-right: none; padding-right: 0; padding-left: 16px; }
-  .stat:nth-last-child(-n+2) { border-bottom: none; }
-  .stat-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  .stat-value {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: 34px;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-    transition: color 0.4s ease;
-  }
-  .stat-value.big { font-size: 44px; }
-  .stat-value.accent { color: var(--accent); }
-  .stat-unit {
-    font-family: 'Geist', sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--muted);
-    margin-left: 4px;
-    letter-spacing: 0;
-  }
+.ruler { position: relative; height: 40px; }
+.ruler-track { position: absolute; left: 0; right: 0; top: 12px; height: 6px; border-radius: 3px; background: var(--sunk); }
+.ruler-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--trend); width: 0; transition: width .4s ease; }
+.tick { position: absolute; top: 20px; width: 1px; height: 4px; background: var(--line); }
+.tick.major { height: 7px; background: var(--muted); }
+.tick-label { position: absolute; top: 28px; transform: translateX(-50%); font-family: var(--f-mono); font-size: 9.5px; color: var(--muted); white-space: nowrap; }
+.ruler-marker { position: absolute; top: 3px; width: 3px; height: 24px; background: var(--ink); border-radius: 2px; transform: translateX(-1.5px); transition: left .4s ease; }
+.ruler-meta { display: flex; justify-content: space-between; gap: 8px; }
 
-  /* ---------- progress ---------- */
-  .progress-wrap { margin-bottom: 32px; }
-  .progress-track {
-    position: relative;
-    height: 6px;
-    background: var(--secondary-soft);
-    border: 1px solid var(--rule);
-    transition: background 0.4s ease;
-  }
-  .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease;
-    width: 0%;
-  }
-  .progress-marker {
-    position: absolute;
-    top: -4px;
-    width: 2px;
-    height: 14px;
-    background: var(--ink);
-    transform: translateX(-1px);
-    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    left: 0%;
-  }
-  .progress-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-  .progress-goal {
-    color: var(--accent);
-    font-weight: 500;
-    transition: color 0.4s ease;
-  }
+/* forms */
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field.full, .span-all { grid-column: 1 / -1; }
+.field input, .field select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-height: 44px; }
+.field input:focus, .field select:focus { border-color: var(--trend); outline: none; box-shadow: 0 0 0 3px var(--trend-soft); }
+.weight-input { font-family: var(--f-mono); font-size: 19px !important; }
+.linkish { justify-self: start; background: none; border: none; padding: 2px 0; color: var(--trend); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.btn { border-radius: 8px; padding: 10px 14px; min-height: 44px; cursor: pointer; border: 1px solid var(--ink); background: transparent; font-weight: 700; }
+.btn.primary { background: var(--ink); color: var(--surface); }
+.btn.sm { min-height: 36px; padding: 6px 12px; font-size: 14px; }
+.btn.danger { border-color: var(--up); color: var(--up); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.form-msg { color: var(--muted); font-size: 13px; }
 
-  /* ---------- card ---------- */
-  .card {
-    background: var(--paper-warm);
-    border: 1px solid var(--rule);
-    padding: 22px 20px;
-    margin-bottom: 24px;
-  }
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  h2 {
-    font-family: 'Fraunces', serif;
-    font-weight: 400;
-    font-size: 22px;
-    margin: 0;
-    letter-spacing: -0.01em;
-    font-style: italic;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  h2::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    background: var(--secondary);
-    border-radius: 50%;
-    flex-shrink: 0;
-    transition: background 0.4s ease;
-  }
-  .legend {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
-  .legend-line {
-    width: 16px;
-    height: 0;
-    display: inline-block;
-  }
-  .legend-line.daily { border-top: 2px solid var(--ink); }
-  .legend-line.avg { border-top: 2px solid var(--accent); }
-  .legend-line.goal { border-top: 1.5px dashed var(--secondary); }
+/* stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.tiles.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tile { background: var(--surface); padding: 10px 11px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile .v { font-family: var(--f-mono); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.2; }
+.tile .u { font-size: 11px; color: var(--muted); margin-left: 3px; }
+.tile .note { font-size: 12px; }
+@media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tiles.three { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-  /* ---------- chart ---------- */
-  .chart-wrap {
-    position: relative;
-    width: 100%;
-    height: 280px;
-  }
-  .chart-empty {
-    height: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px dashed var(--rule);
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    color: var(--muted);
-    font-size: 14px;
-    text-align: center;
-    padding: 0 20px;
-  }
-  svg.chart { width: 100%; height: 100%; display: block; }
-  svg.chart text {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    fill: var(--muted);
-  }
-  .chart-tooltip {
-    position: absolute;
-    background: var(--paper);
-    border: 1px solid var(--ink);
-    padding: 8px 12px;
-    font-size: 12px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    min-width: 140px;
-    z-index: 10;
-  }
-  .chart-tooltip.visible { opacity: 1; }
-  .tt-date {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .tt-row { display: flex; justify-content: space-between; gap: 12px; padding: 1px 0; }
-  .tt-val { font-weight: 500; font-variant-numeric: tabular-nums; }
+/* chart */
+.chips { display: inline-flex; background: var(--sunk); border-radius: 8px; padding: 2px; gap: 2px; }
+.chip { border: none; background: transparent; padding: 5px 10px; border-radius: 6px; font-family: var(--f-mono); font-size: 12px; cursor: pointer; color: var(--muted); min-height: 32px; }
+.chip[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.chart-box { position: relative; min-width: 0; }
+.chart-box svg { display: block; width: 100%; height: 230px; overflow: visible; touch-action: pan-y; }
+.chart-box text { font-family: var(--f-mono); font-size: 10px; fill: var(--muted); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.legend i { width: 14px; height: 0; border-top: 2px solid; display: inline-block; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font-size: 12.5px; width: 172px; opacity: 0; transition: opacity .12s; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+.tip.on { opacity: 1; }
+.tip .r { display: flex; justify-content: space-between; gap: 8px; }
+.empty { padding: 22px 8px; text-align: center; color: var(--muted); }
 
-  /* ---------- insights ---------- */
-  .insights {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-  @media (min-width: 480px) {
-    .insights { grid-template-columns: 1fr 1fr 1fr; }
-  }
-  .insight {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--secondary);
-    padding: 16px 18px;
-    transition: border-color 0.4s ease;
-  }
-  .insight-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-  .insight-value {
-    font-family: 'Fraunces', serif;
-    font-size: 24px;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    margin-bottom: 6px;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-  .insight-unit {
-    font-family: 'Geist', sans-serif;
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: 3px;
-  }
-  .insight-note {
-    font-size: 12px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-    font-style: italic;
-    font-family: 'Fraunces', serif;
-  }
+/* milestones + weeks */
+.milestones { display: flex; flex-wrap: wrap; gap: 6px; }
+.ms { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.ms::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.ms.done { color: var(--ink); border-color: var(--trend); }
+.ms.done::before { background: var(--trend); border-color: var(--trend); }
+.ms.next { border-style: dashed; border-color: var(--goal); color: var(--ink); }
+.ms.next::before { border-color: var(--goal); }
+.wk { display: grid; grid-template-columns: 74px minmax(0, 1fr) 52px 48px; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.wk:first-child { border-top: none; }
+.wk .bar { height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
+.wk .bar b { display: block; height: 100%; background: var(--trend); border-radius: 3px; }
+.wk .num { text-align: right; }
 
-  /* ---------- form ---------- */
-  .form-hint {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 14px;
-    color: var(--muted);
-    margin: 6px 0 18px;
-    line-height: 1.5;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .field { display: flex; flex-direction: column; }
-  .field.full { grid-column: 1 / -1; }
-  .field > label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  input[type="date"], input[type="number"], input[type="text"] {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    padding: 12px 12px;
-    font-size: 16px;
-    color: var(--ink);
-    width: 100%;
-    font-family: 'Geist', sans-serif;
-    border-radius: 0;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  input[type="date"]:focus, input[type="number"]:focus, input[type="text"]:focus {
-    outline: none;
-    border-color: var(--ink);
-  }
-  button.primary {
-    background: var(--ink);
-    color: var(--paper);
-    border: none;
-    padding: 14px 22px;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    width: 100%;
-    transition: background 0.2s;
-    cursor: pointer;
-    font-family: 'Geist', sans-serif;
-    position: relative;
-  }
-  button.primary::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 6px;
-    height: 100%;
-    background: var(--accent);
-    transition: background 0.4s ease;
-  }
-  button.primary:active { background: var(--ink-soft); }
-  button.ghost {
-    background: transparent;
-    color: var(--ink);
-    border: 1px solid var(--ink);
-    padding: 12px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: 'Geist', sans-serif;
-  }
+/* history */
+.hist-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.month { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 10px 2px 4px; }
+.hrow { width: 100%; display: grid; grid-template-columns: 58px minmax(0, 1fr) auto 48px; gap: 8px; align-items: center; padding: 9px 2px; border: none; border-top: 1px solid var(--line); background: none; text-align: left; cursor: pointer; }
+.hrow .d { font-size: 14px; }
+.hrow .d small { color: var(--muted); font-size: 11px; margin-left: 4px; }
+.hrow .flags { display: flex; gap: 4px; min-width: 0; overflow: hidden; }
+.dot-flag { font-size: 11px; padding: 1px 6px; border-radius: 5px; background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.dot-flag.dose { background: var(--trend-soft); color: var(--ink); }
+.hrow .w { font-family: var(--f-mono); font-size: 15px; }
+.hrow .chg { font-family: var(--f-mono); font-size: 12px; text-align: right; }
+.hdetail { padding: 4px 2px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.hdetail dl { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 4px 10px; margin: 0; }
+.hdetail dt { color: var(--muted); font-size: 13px; }
+.hdetail dd { margin: 0; overflow-wrap: anywhere; }
 
-  /* ---------- entries ---------- */
-  .entries { margin-top: 14px; border-top: 1px solid var(--rule); }
-  .entry {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    gap: 10px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--rule);
-    align-items: baseline;
-  }
-  .entry-date {
-    font-family: 'Fraunces', serif;
-    font-size: 14px;
-    font-style: italic;
-  }
-  .entry-weight {
-    font-family: 'Fraunces', serif;
-    font-size: 17px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-  .entry-unit {
-    font-family: 'Geist', sans-serif;
-    font-size: 10px;
-    color: var(--muted);
-    font-weight: 400;
-  }
-  .entry-delta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-    min-width: 36px;
-    text-align: right;
-  }
-  .entry-delta.down { color: var(--accent); transition: color 0.4s ease; }
-  .entry-delta.up { color: var(--ink); }
-  .entry-notes {
-    grid-column: 1 / -1;
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 13px;
-    color: var(--ink-soft);
-    margin-top: 2px;
-    padding-left: 8px;
-    border-left: 2px solid var(--secondary-soft);
-    transition: border-color 0.4s ease;
-  }
-  .delete-btn {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 22px;
-    width: 32px;
-    height: 32px;
-    line-height: 1;
-    padding: 0;
-    cursor: pointer;
-  }
+/* history drill-down */
+.grow { width: 100%; display: grid; grid-template-columns: 16px minmax(0, 1fr) 52px 48px; gap: 8px; align-items: center; border: none; border-top: 1px solid var(--line); background: none; text-align: left; cursor: pointer; padding: 10px 2px; }
+.grow:first-child { border-top: none; }
+.grow .chev { color: var(--muted); font-size: 12px; }
+.grow .gl small { color: var(--muted); font-size: 11.5px; margin-left: 8px; font-weight: 400; }
+.grow .num { text-align: right; font-size: 14px; }
+.grow .chg { font-size: 12.5px; }
+.grow.l0 { font-family: var(--f-display); font-weight: 700; font-size: 17px; }
+.grow.l0 .num { font-size: 15px; }
+.grow.l1 { padding-left: 14px; font-weight: 700; }
+.grow.l1 .chev { margin-left: 0; }
+.grow.l2 { padding-left: 28px; grid-template-columns: 16px minmax(0, 1fr) 52px 48px; background: var(--bg); border-top-color: transparent; border-radius: 6px; margin-top: 2px; font-size: 14px; }
+.grow[aria-expanded="true"].l0, .grow[aria-expanded="true"].l1 { color: var(--ink); }
+.days { margin: 2px 0 6px 44px; border-left: 2px solid var(--line); padding-left: 8px; }
+.days .hrow:first-child { border-top: none; }
+.hrow .d small { color: var(--muted); font-size: 11px; margin-left: 4px; }
 
-  /* ---------- settings ---------- */
-  .settings-btn {
-    background: transparent;
-    color: var(--muted);
-    border: none;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 8px 0;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    display: block;
-    margin-bottom: 8px;
-    cursor: pointer;
-  }
-  .settings-edit {
-    background: var(--paper-warm);
-    border: 1px solid var(--rule);
-    padding: 20px;
-    margin-bottom: 24px;
-  }
-  .settings-actions { display: flex; gap: 10px; margin-top: 14px; }
-  .settings-actions button { flex: 1; }
+/* bottom tab bar */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bar);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+.tabbar-inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); height: var(--nav-h); }
+.tab { border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 700; position: relative; }
+.tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-current="page"] { color: var(--trend); }
+.tab[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; border-radius: 0 0 2px 2px; background: var(--trend); }
 
-  .footer {
-    text-align: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px solid var(--rule);
-  }
-
-  /* ---------- select (medication log) ---------- */
-  select {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    padding: 12px 12px;
-    font-size: 16px;
-    color: var(--ink);
-    width: 100%;
-    font-family: 'Geist', sans-serif;
-    border-radius: 0;
-    -webkit-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%238B8680' stroke-width='1.5'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
-  }
-  select:focus { outline: none; border-color: var(--ink); }
-
-  /* ---------- 30-day legend line ---------- */
-  .legend-line.avg30 { border-top: 2px solid var(--secondary); }
-
-  /* ---------- consistency / streaks ---------- */
-  .streak-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    border-top: 1px solid var(--rule);
-    border-left: 1px solid var(--rule);
-  }
-  @media (min-width: 480px) { .streak-grid { grid-template-columns: repeat(4, 1fr); } }
-  .streak {
-    padding: 14px 14px 16px;
-    border-right: 1px solid var(--rule);
-    border-bottom: 1px solid var(--rule);
-  }
-  .streak-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  .streak-value {
-    font-family: 'Fraunces', serif;
-    font-size: 30px;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-  }
-  .streak-unit {
-    font-family: 'Geist', sans-serif;
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: 4px;
-  }
-
-  /* ---------- milestones ---------- */
-  .milestones {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 18px;
-  }
-  .milestone {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 7px 11px;
-    border: 1px solid var(--rule);
-    color: var(--muted);
-    background: var(--paper);
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-  }
-  .milestone .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--rule);
-    flex-shrink: 0;
-  }
-  .milestone.reached { color: var(--ink); border-color: var(--ink); }
-  .milestone.reached .dot { background: var(--accent); }
-  .milestone.next { border-color: var(--secondary); color: var(--ink-soft); }
-  .milestone.next .dot { background: var(--secondary); }
-
-  /* ---------- weekly summary ---------- */
-  .weeks { border-top: 1px solid var(--rule); }
-  .week-row {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 12px;
-    align-items: baseline;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--rule);
-  }
-  .week-label {
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-size: 14px;
-  }
-  .week-avg {
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
-  .week-avg .u { font-family: 'Geist', sans-serif; font-size: 10px; color: var(--muted); font-weight: 400; }
-  .week-change {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-    min-width: 44px;
-    text-align: right;
-    color: var(--muted);
-  }
-  .week-change.down { color: var(--accent); }
-  .week-change.up { color: var(--ink); }
-
-  /* ---------- entry meta tags ---------- */
-  .entry-meta {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 6px;
-  }
-  .tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border: 1px solid var(--rule);
-    color: var(--ink-soft);
-    background: var(--paper);
-  }
-  .tag.dose { border-color: var(--secondary-soft); }
-  .tag.side { border-color: var(--accent-soft); }
-
-  /* ===== expanded palette theming ===== */
-  ::selection { background: var(--accent); color: var(--paper); }
-  ::-moz-selection { background: var(--accent); color: var(--paper); }
-
-  /* masthead rules: thicker + dual-color */
-  .rule { background: var(--secondary); height: 2px; transition: background 0.4s ease; }
-  .rule::after { background: var(--accent); width: 90px; height: 2px; top: 0; }
-  .masthead-top { border-bottom-color: var(--secondary-soft); transition: border-color 0.4s ease; }
-
-  /* section headings: sub-color underline + haloed dot */
-  h2 { border-bottom: 1px solid var(--secondary-soft); padding-bottom: 10px; transition: border-color 0.4s ease; }
-  h2::before { box-shadow: 0 0 0 3px var(--secondary-soft); transition: background 0.4s ease, box-shadow 0.4s ease; }
-
-  /* cards + stat grid framed in sub-color */
-  .card { border-top: 2px solid var(--secondary-soft); transition: border-color 0.4s ease, background 0.4s ease; }
-  .stats { border-top: 2px solid var(--secondary-soft); transition: border-color 0.4s ease; }
-  .stat-value.big { color: var(--accent); transition: color 0.4s ease; }
-  .stat-label, .streak-label { transition: color 0.4s ease; }
-
-  /* progress marker in sub-color */
-  .progress-marker { background: var(--secondary); transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease; }
-
-  /* streak / averages frames + accent values */
-  .streak-grid { border-top-color: var(--secondary-soft); border-left-color: var(--secondary-soft); }
-  .streak-value { transition: color 0.4s ease; }
-  .streak-value.accent { color: var(--accent); }
-
-  /* milestones: reached rings in main color */
-  .milestone.reached { border-color: var(--accent); }
-
-  /* insights: alternate main / sub left borders */
-  .insight:nth-child(2n) { border-left-color: var(--accent); }
-  .insight-value { transition: color 0.4s ease; }
-
-  /* mood tag in sub-color */
-  .tag.mood { border-color: var(--secondary-soft); }
-
-  /* focus states glow in main color */
-  input[type="date"]:focus, input[type="number"]:focus, input[type="text"]:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-soft);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .hidden { display: none !important; }
-
-  /* ---------- backup ---------- */
-  .backup-actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 14px; }
-  @media (min-width: 480px) { .backup-actions { grid-template-columns: 1fr 1fr; } }
-  .backup-actions button { width: 100%; }
-  .backup-actions .full { grid-column: 1 / -1; }
-  .backup-status {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 12px;
-    line-height: 1.6;
-  }
+.page { display: flex; flex-direction: column; gap: 12px; }
+.confirm-box { border: 1px solid var(--goal); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); font-size: 14px; }
+.footer { text-align: center; padding-top: 4px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<style>html{padding-top:env(safe-area-inset-top,0px)}body{margin:0;-webkit-text-size-adjust:100%}</style>
 </head>
 <body>
+<div class="app">
+  <header class="topbar">
+    <h1 id="page-title">Today</h1>
+    <span class="status">
+      <span class="demo-badge" id="demo-badge" hidden>Demo data</span>
+      <span class="label sync" id="sync" data-state="wait">Connecting</span>
+    </span>
+  </header>
 
-<header class="masthead">
-  <div class="masthead-top">
-    <span>The Weight Journal</span>
-    <div class="masthead-right">
-      <button class="palette-trigger" id="palette-trigger" aria-label="Change colors">
-        <span class="swatch s1"></span>
-        <span class="swatch s2"></span>
-      </button>
-      <span id="today-date"></span>
-    </div>
-  </div>
-  <h1>From <span class="num" id="start-display">191</span> to <span class="num" id="goal-display">170</span></h1>
-  <div class="rule"></div>
-</header>
+  <div class="notice" id="offline" hidden>Can't reach the cloud. Anything you log is saved on this device and syncs when the app reconnects.</div>
 
-<section class="palette-panel hidden" id="palette-panel">
-  <div class="palette-header">
-    <h3>Palette</h3>
-    <button class="palette-close" id="palette-close" aria-label="Close">×</button>
-  </div>
-  <div class="palette-section">
-    <div class="palette-section-label">Presets</div>
-    <div class="preset-grid" id="preset-grid"></div>
-  </div>
-  <div class="palette-section">
-    <div class="palette-section-label">Custom</div>
-    <div class="custom-pickers">
-      <label class="picker-field">
-        <input type="color" id="main-picker">
-        <span>Main</span>
-      </label>
-      <label class="picker-field">
-        <input type="color" id="accent-picker">
-        <span>Accent</span>
-      </label>
-    </div>
-    <button class="palette-reset" id="palette-reset">Reset to defaults</button>
-  </div>
-</section>
-
-<section class="stats" id="stats"></section>
-
-<section class="progress-wrap">
-  <div class="progress-track">
-    <div class="progress-fill" id="progress-fill"></div>
-    <div class="progress-marker" id="progress-marker"></div>
-  </div>
-  <div class="progress-labels">
-    <span id="progress-start">191 lbs</span>
-    <span class="progress-goal" id="progress-goal">Goal · 170 lbs</span>
-  </div>
-</section>
-
-<section class="card">
-  <div class="card-header">
-    <h2>The Trajectory</h2>
-    <div class="legend">
-      <span class="legend-item"><span class="legend-line daily"></span> daily</span>
-      <span class="legend-item"><span class="legend-line avg"></span> 7-day avg</span>
-      <span class="legend-item"><span class="legend-line avg30"></span> 30-day avg</span>
-      <span class="legend-item"><span class="legend-line goal"></span> goal</span>
-    </div>
-  </div>
-  <div class="chart-wrap" id="chart-wrap">
-    <div class="chart-empty" id="chart-empty">
-      No entries yet. Add today's weight below to begin charting.
-    </div>
-    <svg class="chart hidden" id="chart" preserveAspectRatio="none"></svg>
-    <div class="chart-tooltip" id="tooltip"></div>
-  </div>
-</section>
-
-<section class="card hidden" id="weekly-card">
-  <h2>By the Week</h2>
-  <div class="weeks" id="weeks-list"></div>
-</section>
-
-<section class="insights hidden" id="insights"></section>
-
-<section class="card hidden" id="streak-card">
-  <h2>Consistency</h2>
-  <div class="streak-grid" id="streak-grid"></div>
-  <div class="milestones" id="milestones"></div>
-</section>
-
-<section class="card hidden" id="averages-card">
-  <h2>Averages &amp; Trends</h2>
-  <div class="streak-grid" id="averages-grid"></div>
-</section>
-
-<section class="card">
-  <h2>Log Today</h2>
-  <p class="form-hint">
-    Weigh at the same time each day for consistency — first thing in the morning, after using the bathroom, before eating or drinking.
-  </p>
-  <div class="form-grid">
-    <div class="field">
-      <label>Date</label>
-      <input type="date" id="input-date">
-    </div>
-    <div class="field">
-      <label>Weight (lbs)</label>
-      <input type="number" inputmode="decimal" step="0.1" placeholder="190.5" id="input-weight">
-    </div>
-    <div class="field">
-      <label>Dose (optional)</label>
-      <input type="text" inputmode="decimal" placeholder="e.g. 0.5 mg" id="input-dose">
-    </div>
-    <div class="field">
-      <label>Mood (optional)</label>
-      <select id="input-mood">
-        <option value="">—</option>
-        <option value="Great">Great</option>
-        <option value="Good">Good</option>
-        <option value="Okay">Okay</option>
-        <option value="Low">Low</option>
-        <option value="Rough">Rough</option>
-      </select>
-    </div>
-    <div class="field full">
-      <label>Side effects (optional)</label>
-      <input type="text" placeholder="nausea, fatigue, headache…" id="input-side">
-    </div>
-    <div class="field full">
-      <label>Notes (optional)</label>
-      <input type="text" placeholder="anything else…" id="input-notes">
-    </div>
-  </div>
-  <button class="primary" id="add-btn">Record</button>
-</section>
-
-<section class="card hidden" id="entries-card">
-  <h2>The Record</h2>
-  <div class="entries" id="entries-list"></div>
-</section>
-
-<section>
-  <button class="settings-btn" id="settings-btn">Edit starting &amp; goal weights</button>
-  <div class="settings-edit hidden" id="settings-edit">
-    <h2>Adjust Goals</h2>
-    <div class="form-grid" style="margin-top: 12px;">
-      <div class="field">
-        <label>Starting weight</label>
-        <input type="number" inputmode="decimal" step="0.1" id="draft-start">
-      </div>
-      <div class="field">
-        <label>Goal weight</label>
-        <input type="number" inputmode="decimal" step="0.1" id="draft-goal">
+  <!-- TODAY -->
+  <section class="page" id="page-today" data-page="today">
+    <div>
+      <div class="label" id="current-label">Current weight</div>
+      <div class="readout">
+        <div><span class="big" id="big">–</span><span class="big-unit">lbs</span></div>
+        <div class="readout-side">
+          <div class="mini"><span class="label">Lost</span><span class="v" id="mini-lost">–</span></div>
+          <div class="mini"><span class="label">To go</span><span class="v" id="mini-togo">–</span></div>
+        </div>
       </div>
     </div>
-    <div class="settings-actions">
-      <button class="ghost" id="settings-cancel">Cancel</button>
-      <button class="primary" id="settings-save">Save</button>
+    <div>
+      <div class="ruler" id="ruler" aria-hidden="true">
+        <div class="ruler-track"><div class="ruler-fill" id="ruler-fill"></div></div>
+        <div class="ruler-marker" id="ruler-marker" style="left:0"></div>
+      </div>
+      <div class="ruler-meta">
+        <span class="label" id="ruler-start">Start</span>
+        <span class="label" id="ruler-pct"></span>
+        <span class="label" id="ruler-goal">Goal</span>
+      </div>
     </div>
+
+    <form class="panel" id="log-form" novalidate>
+      <div class="panel-head">
+        <h2 id="log-title">Log a weigh-in</h2>
+        <span class="label" id="log-hint"></span>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label" for="in-date">Date</label>
+          <input type="date" id="in-date" required>
+        </div>
+        <div class="field">
+          <label class="label" for="in-weight">Weight (lbs)</label>
+          <input type="number" inputmode="decimal" step="0.1" min="1" max="1000" id="in-weight" class="weight-input" placeholder="190.5" required>
+        </div>
+        <button type="button" class="linkish span-all" id="more-toggle" aria-expanded="false">Add dose, mood, or notes</button>
+        <div class="field" data-more hidden>
+          <label class="label" for="in-dose">Dose</label>
+          <input type="text" id="in-dose" placeholder="0.5 mg">
+        </div>
+        <div class="field" data-more hidden>
+          <label class="label" for="in-mood">Mood</label>
+          <select id="in-mood">
+            <option value="">Not set</option>
+            <option>Great</option><option>Good</option><option>Okay</option><option>Low</option><option>Rough</option>
+          </select>
+        </div>
+        <div class="field full" data-more hidden>
+          <label class="label" for="in-side">Side effects</label>
+          <input type="text" id="in-side" placeholder="nausea, fatigue, headache">
+        </div>
+        <div class="field full" data-more hidden>
+          <label class="label" for="in-notes">Notes</label>
+          <input type="text" id="in-notes" placeholder="anything else">
+        </div>
+        <div class="row span-all">
+          <button type="submit" class="btn primary" id="save-btn">Save weigh-in</button>
+          <button type="button" class="btn" id="cancel-edit" hidden>Cancel</button>
+          <span class="form-msg" id="form-msg" role="status"></span>
+        </div>
+      </div>
+    </form>
+
+    <div class="tiles three" id="quick"></div>
+  </section>
+
+  <!-- TREND -->
+  <section class="page" id="page-trend" data-page="trend" hidden>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="chips" role="group" aria-label="Date range">
+          <button class="chip" data-range="30" aria-pressed="false">1M</button>
+          <button class="chip" data-range="90" aria-pressed="true">3M</button>
+          <button class="chip" data-range="180" aria-pressed="false">6M</button>
+          <button class="chip" data-range="0" aria-pressed="false">All</button>
+        </div>
+        <span class="label" id="range-change"></span>
+      </div>
+      <div class="chart-box" id="chart-box">
+        <div class="empty" id="chart-empty">Your trend line appears after your first weigh-in.</div>
+        <svg id="chart" hidden></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="legend">
+        <span><i style="border-color:var(--ink);border-top-width:1px"></i>Daily</span>
+        <span><i style="border-color:var(--trend)"></i>7-day avg</span>
+        <span><i style="border-color:var(--long)"></i>30-day avg</span>
+        <span><i style="border-color:var(--goal);border-top-style:dashed"></i>Goal</span>
+      </div>
+    </div>
+    <div class="tiles" id="pace"></div>
+    <p class="note" id="pace-note"></p>
+  </section>
+
+  <!-- STATS -->
+  <section class="page" id="page-stats" data-page="stats" hidden>
+    <div class="tiles" id="stats"></div>
+    <div class="panel" id="streak-panel">
+      <h2>Consistency</h2>
+      <div class="tiles" id="streaks"></div>
+      <div class="milestones" id="milestones"></div>
+    </div>
+    <div class="panel" id="weekly-panel">
+      <div class="panel-head"><h2>By the week</h2><span class="label">Avg · change</span></div>
+      <div id="weeks"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="page" id="page-history" data-page="history" hidden>
+    <div class="hist-head">
+      <span class="label" id="rec-count"></span>
+      <span class="label">Avg · change</span>
+    </div>
+    <div class="panel" style="padding:4px 10px 6px;gap:0">
+      <div id="record"></div>
+      <div class="empty" id="record-empty" hidden>No weigh-ins yet.</div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="page" id="page-settings" data-page="settings" hidden>
+    <form class="panel" id="goal-form" novalidate>
+      <h2>Goals</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label" for="in-start">Starting weight</label>
+          <input type="number" inputmode="decimal" step="0.1" id="in-start">
+        </div>
+        <div class="field">
+          <label class="label" for="in-goal">Goal weight</label>
+          <input type="number" inputmode="decimal" step="0.1" id="in-goal">
+        </div>
+        <div class="row span-all">
+          <button type="submit" class="btn">Save goals</button>
+          <span class="form-msg" id="goal-msg" role="status"></span>
+        </div>
+      </div>
+    </form>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Backup</h2><span class="label" id="bk-count"></span></div>
+      <p class="note" id="bk-note">Your entries are saved to the cloud and kept on this device too. Export a copy now and then for extra safety.</p>
+      <div class="row">
+        <button class="btn primary sm" id="exp-json">Export backup</button>
+        <button class="btn sm" id="exp-csv">Export CSV</button>
+        <button class="btn sm" id="imp-btn">Import backup</button>
+        <input type="file" id="imp-file" accept=".json,application/json" hidden>
+      </div>
+      <div class="confirm-box" id="imp-confirm" hidden>
+        <div id="imp-summary"></div>
+        <div class="row">
+          <button class="btn primary sm" id="imp-go">Import entries</button>
+          <button class="btn sm" id="imp-cancel">Cancel</button>
+        </div>
+      </div>
+      <span class="form-msg" id="bk-msg" role="status"></span>
+    </div>
+    <div class="label footer" id="footer">Synced to the cloud · v8</div>
+  </section>
+</div>
+
+<nav class="tabbar" aria-label="Pages">
+  <div class="tabbar-inner">
+    <button class="tab" data-tab="today" aria-current="page">
+      <svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg>Today
+    </button>
+    <button class="tab" data-tab="trend">
+      <svg viewBox="0 0 24 24"><path d="M3 6l6 6 4-4 8 9"/><path d="M15 17h6v-6"/></svg>Trend
+    </button>
+    <button class="tab" data-tab="stats">
+      <svg viewBox="0 0 24 24"><path d="M5 20V11"/><path d="M12 20V5"/><path d="M19 20v-7"/></svg>Stats
+    </button>
+    <button class="tab" data-tab="history">
+      <svg viewBox="0 0 24 24"><path d="M8 6h12"/><path d="M8 12h12"/><path d="M8 18h12"/><circle cx="4" cy="6" r=".6"/><circle cx="4" cy="12" r=".6"/><circle cx="4" cy="18" r=".6"/></svg>History
+    </button>
+    <button class="tab" data-tab="settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings
+    </button>
   </div>
-</section>
-
-<section class="card" id="backup-card">
-  <h2>Backup</h2>
-  <p class="form-hint">
-    Your entries are saved to the cloud and kept on this device too. Export a backup now and then for extra safety.
-  </p>
-  <div class="backup-actions">
-    <button class="primary" id="export-json-btn">Export backup</button>
-    <button class="ghost" id="export-csv-btn">Export spreadsheet (CSV)</button>
-    <button class="ghost full" id="import-btn">Restore from backup</button>
-  </div>
-  <input type="file" id="import-file" accept=".json,application/json" class="hidden">
-  <div class="backup-status" id="backup-status"></div>
-</section>
-
-<footer class="footer">Synced to the cloud · v6</footer>
-
+</nav>
 <script>
 'use strict';
 
-// ---------- storage ----------
-const STORAGE_ENTRIES = 'wj:entries:v1';
-const STORAGE_SETTINGS = 'wj:settings:v1';
-const STORAGE_COLORS = 'wj:colors:v1';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const DASH = '–';
 
-const defaultSettings = { startWeight: 191, goalWeight: 170 };
-const defaultColors = { main: '#B8453A', accent: '#4A6B7C' };
+// Local calendar date (not UTC), so evening entries in Arizona land on the right day.
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function isoOf(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const toDate = (iso) => new Date(iso + 'T00:00:00');
+const daysBetween = (a, b) => Math.round((toDate(b) - toDate(a)) / 86400000);
+const fmtShort = (iso) => toDate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const fmtLong = (iso) => toDate(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+const roundTo = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
+const signed = (v, d = 1) => { if (v === null || v === undefined) return DASH; const r = roundTo(v, d); return (r < 0 ? '−' : r > 0 ? '+' : '') + Math.abs(r).toFixed(d); };
+const cls = (v) => { if (v === null || v === undefined) return ''; const r = roundTo(v, 1); return r === 0 ? '' : r < 0 ? 'down' : 'up'; };
 
-const presets = [
-  { name: 'Rust & Slate',     main: '#B8453A', accent: '#4A6B7C' },
-  { name: 'Forest & Ochre',   main: '#2F4A2F', accent: '#C89938' },
-  { name: 'Plum & Sage',      main: '#5C3D52', accent: '#8FA68F' },
-  { name: 'Cobalt & Brick',   main: '#1E3A6F', accent: '#B8453A' },
-  { name: 'Ink & Coral',      main: '#2F2F2F', accent: '#E07856' },
-  { name: 'Burgundy & Gold',  main: '#7C2D3A', accent: '#C8A045' },
-];
-
-let entries = [];
-let settings = { ...defaultSettings };
-let colors = { ...defaultColors };
-
-function loadState() {
-  try {
-    const e = localStorage.getItem(STORAGE_ENTRIES);
-    if (e) entries = JSON.parse(e);
-  } catch (err) { console.error(err); }
-  try {
-    const s = localStorage.getItem(STORAGE_SETTINGS);
-    if (s) settings = { ...defaultSettings, ...JSON.parse(s) };
-  } catch (err) { console.error(err); }
-  try {
-    const c = localStorage.getItem(STORAGE_COLORS);
-    if (c) colors = { ...defaultColors, ...JSON.parse(c) };
-  } catch (err) { console.error(err); }
-}
-
-function saveEntries() {
-  try { localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(entries)); }
-  catch (err) { console.error(err); }
-}
-function saveSettings() {
-  try { localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings)); }
-  catch (err) { console.error(err); }
-}
-function saveColors() {
-  try { localStorage.setItem(STORAGE_COLORS, JSON.stringify(colors)); }
-  catch (err) { console.error(err); }
-}
-
-// ---------- color application ----------
-function applyColors() {
-  document.documentElement.style.setProperty('--accent', colors.main);
-  document.documentElement.style.setProperty('--secondary', colors.accent);
-  // Update theme-color meta for iOS standalone status bar tint
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', '#F5F1E8');
-  // Update pickers if they exist
-  const mp = document.getElementById('main-picker');
-  const ap = document.getElementById('accent-picker');
-  if (mp) mp.value = colors.main;
-  if (ap) ap.value = colors.accent;
-  // Highlight active preset
-  document.querySelectorAll('.preset').forEach(el => {
-    el.classList.toggle('active',
-      el.dataset.main.toLowerCase() === colors.main.toLowerCase() &&
-      el.dataset.accent.toLowerCase() === colors.accent.toLowerCase());
-  });
-}
-
-function setColors(main, accent) {
-  colors.main = main;
-  colors.accent = accent;
-  saveColors();
-  applyColors();
-  // Re-render chart since some SVG colors need fresh strokes
-  render();
-}
-
-// ---------- helpers ----------
-function todayISO() { return new Date().toISOString().split('T')[0]; }
-function fmtDate(iso) {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-function fmtDateLong(iso) {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-}
-function daysBetween(a, b) {
-  return (new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000;
-}
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-}
-
-// ---------- compute ----------
+// ---------- compute (same math as the original app) ----------
 function compute() {
-  const sorted = entries.slice().sort((a, b) => a.date.localeCompare(b.date));
-  const current = sorted.length ? sorted[sorted.length - 1].weight : settings.startWeight;
+  const s = entries;
+  const n = s.length;
+  const current = n ? s[n - 1].weight : settings.startWeight;
   const totalLost = settings.startWeight - current;
   const toGo = current - settings.goalWeight;
   const totalToLose = settings.startWeight - settings.goalWeight;
   const pct = totalToLose > 0 ? Math.max(0, Math.min(100, (totalLost / totalToLose) * 100)) : 0;
 
   let weeklyRate = null, projectedDate = null, daysTracked = 0;
-  if (sorted.length >= 2) {
-    const first = sorted[0], last = sorted[sorted.length - 1];
-    const days = daysBetween(first.date, last.date);
-    daysTracked = days;
-    if (days > 0) {
-      const perDay = (first.weight - last.weight) / days;
+  if (n >= 2) {
+    daysTracked = daysBetween(s[0].date, s[n - 1].date);
+    if (daysTracked > 0) {
+      const perDay = (s[0].weight - s[n - 1].weight) / daysTracked;
       weeklyRate = perDay * 7;
-      if (perDay > 0 && toGo > 0) {
-        projectedDate = new Date(new Date(last.date + 'T00:00:00').getTime() + (toGo / perDay) * 86400000);
-      }
+      if (perDay > 0 && toGo > 0) projectedDate = new Date(toDate(s[n - 1].date).getTime() + (toGo / perDay) * 86400000);
     }
   }
-
-  const withAvg = sorted.map((entry, i) => {
-    const win7 = sorted.slice(Math.max(0, i - 6), i + 1);
-    const avg = win7.reduce((s, e) => s + e.weight, 0) / win7.length;
-    const win30 = sorted.slice(Math.max(0, i - 29), i + 1);
-    const avg30 = win30.reduce((s, e) => s + e.weight, 0) / win30.length;
-    return { ...entry, avg: parseFloat(avg.toFixed(2)), avg30: parseFloat(avg30.toFixed(2)) };
+  const withAvg = s.map((e, i) => {
+    const w7 = s.slice(Math.max(0, i - 6), i + 1);
+    const w30 = s.slice(Math.max(0, i - 29), i + 1);
+    return { ...e, avg: w7.reduce((a, x) => a + x.weight, 0) / w7.length, avg30: w30.reduce((a, x) => a + x.weight, 0) / w30.length };
   });
-
-  // lowest weight on record
-  const lowest = sorted.length ? Math.min(...sorted.map(e => e.weight)) : null;
-
-  // change since previous entry
-  const lastDelta = sorted.length >= 2
-    ? sorted[sorted.length - 1].weight - sorted[sorted.length - 2].weight
-    : null;
-
-  // change over a rolling number of days
-  function changeOverDays(n) {
-    if (sorted.length < 2) return null;
-    const last = sorted[sorted.length - 1];
-    const lastT = new Date(last.date + 'T00:00:00').getTime();
-    const targetT = lastT - n * 86400000;
-    const oldestT = new Date(sorted[0].date + 'T00:00:00').getTime();
-    if (oldestT > targetT) return null; // not enough history yet
-    let baseline = sorted[0];
-    for (let i = sorted.length - 1; i >= 0; i--) {
-      if (new Date(sorted[i].date + 'T00:00:00').getTime() <= targetT) { baseline = sorted[i]; break; }
-    }
-    return last.weight - baseline.weight;
+  const lowest = n ? Math.min(...s.map(e => e.weight)) : null;
+  const lastDelta = n >= 2 ? s[n - 1].weight - s[n - 2].weight : null;
+  function changeOver(days) {
+    if (n < 2) return null;
+    const target = toDate(s[n - 1].date).getTime() - days * 86400000;
+    if (toDate(s[0].date).getTime() > target) return null;
+    let base = s[0];
+    for (let i = n - 1; i >= 0; i--) if (toDate(s[i].date).getTime() <= target) { base = s[i]; break; }
+    return s[n - 1].weight - base.weight;
   }
-  const change7 = changeOverDays(7);
-  const change30 = changeOverDays(30);
-
-  // streaks & consistency
-  const dateSet = new Set(sorted.map(e => e.date));
-  const uniqueDates = [...dateSet].sort();
+  const dates = new Set(s.map(e => e.date));
   let currentStreak = 0;
-  if (sorted.length) {
-    let d = new Date(sorted[sorted.length - 1].date + 'T00:00:00');
-    while (dateSet.has(d.toISOString().split('T')[0])) {
-      currentStreak++;
-      d.setDate(d.getDate() - 1);
-    }
-  }
+  if (n) { const d = toDate(s[n - 1].date); while (dates.has(isoOf(d))) { currentStreak++; d.setDate(d.getDate() - 1); } }
   let longestStreak = 0, run = 0;
-  for (let i = 0; i < uniqueDates.length; i++) {
-    if (i === 0) run = 1;
-    else {
-      const diff = Math.round(daysBetween(uniqueDates[i - 1], uniqueDates[i]));
-      run = diff === 1 ? run + 1 : 1;
-    }
-    if (run > longestStreak) longestStreak = run;
-  }
-  const daysSinceLast = sorted.length ? Math.round(daysBetween(sorted[sorted.length - 1].date, todayISO())) : null;
-  let consistency = null;
-  if (uniqueDates.length) {
-    const spanDays = Math.max(1, Math.round(daysBetween(uniqueDates[0], todayISO())) + 1);
-    consistency = Math.min(100, (uniqueDates.length / spanDays) * 100);
-  }
-
-  // most recent logged dose
+  s.forEach((e, i) => { run = i && daysBetween(s[i - 1].date, e.date) === 1 ? run + 1 : 1; longestStreak = Math.max(longestStreak, run); });
+  const daysSinceLast = n ? daysBetween(s[n - 1].date, todayISO()) : null;
+  const consistency = n ? Math.min(100, (n / Math.max(1, daysBetween(s[0].date, todayISO()) + 1)) * 100) : null;
   let currentDose = null;
-  for (let i = sorted.length - 1; i >= 0; i--) {
-    if (sorted[i].dose) { currentDose = sorted[i].dose; break; }
-  }
+  for (let i = n - 1; i >= 0; i--) if (s[i].dose) { currentDose = s[i].dose; break; }
 
-  // milestones
-  const milestones = [];
-  milestones.push({ label: 'First entry', reached: sorted.length >= 1 });
+  const milestones = [{ label: 'First entry', reached: n >= 1 }];
   if (totalToLose > 0) {
-    for (let lb = 5; lb < totalToLose; lb += 5) {
-      milestones.push({ label: lb + ' lbs down', reached: totalLost >= lb });
-    }
+    for (let lb = 5; lb < totalToLose; lb += 5) milestones.push({ label: lb + ' lbs down', reached: totalLost >= lb });
     milestones.push({ label: 'Halfway', reached: pct >= 50 });
-    milestones.push({ label: 'Goal reached', reached: current <= settings.goalWeight && sorted.length >= 1 });
+    milestones.push({ label: 'Goal reached', reached: n >= 1 && current <= settings.goalWeight });
   }
 
-  // weekly summary (weeks start Monday)
-  const wkBuckets = {};
-  sorted.forEach(e => {
-    const dd = new Date(e.date + 'T00:00:00');
-    const dow = (dd.getDay() + 6) % 7;
-    const monday = new Date(dd);
-    monday.setDate(dd.getDate() - dow);
-    const key = monday.toISOString().split('T')[0];
-    (wkBuckets[key] = wkBuckets[key] || []).push(e.weight);
+  const buckets = {};
+  s.forEach(e => {
+    const d = toDate(e.date); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    (buckets[isoOf(d)] = buckets[isoOf(d)] || []).push(e.weight);
   });
-  const weeks = Object.keys(wkBuckets).sort().map(k => {
-    const arr = wkBuckets[k];
-    return { weekStart: k, avg: arr.reduce((s, w) => s + w, 0) / arr.length, count: arr.length };
-  });
-  weeks.forEach((w, i) => { w.change = i > 0 ? w.avg - weeks[i - 1].avg : null; });
-
-  // ---- averages & trends ----
-  const avg7now = withAvg.length ? withAvg[withAvg.length - 1].avg : null;
-  const avg30now = withAvg.length ? withAvg[withAvg.length - 1].avg30 : null;
-  const allTimeAvg = sorted.length ? sorted.reduce((s, e) => s + e.weight, 0) / sorted.length : null;
-
-  // average change per day / per week across the whole record (negative = losing)
-  let avgPerDay = null, avgPerWeek = null;
-  if (sorted.length >= 2 && daysTracked > 0) {
-    avgPerDay = (sorted[sorted.length - 1].weight - sorted[0].weight) / daysTracked;
-    avgPerWeek = avgPerDay * 7;
-  }
-
-  // best (biggest drop) and steadiest weekly change
+  const weeks = Object.keys(buckets).sort().map(k => ({ weekStart: k, avg: buckets[k].reduce((a, b) => a + b, 0) / buckets[k].length, count: buckets[k].length }));
+  weeks.forEach((w, i) => { w.change = i ? w.avg - weeks[i - 1].avg : null; });
   const wkChanges = weeks.map(w => w.change).filter(c => c !== null);
-  const bestWeek = wkChanges.length ? Math.min(...wkChanges) : null;
-
-  // last 4 weeks average weekly change (recent pace)
-  let recentWeekly = null;
-  if (wkChanges.length) {
-    const recent = wkChanges.slice(-4);
-    recentWeekly = recent.reduce((s, c) => s + c, 0) / recent.length;
-  }
+  const recent = wkChanges.slice(-4);
 
   return {
-    sorted, current, totalLost, toGo, pct, weeklyRate, projectedDate, daysTracked, withAvg,
-    lowest, lastDelta, change7, change30,
-    currentStreak, longestStreak, daysSinceLast, consistency, currentDose,
+    n, current, totalLost, toGo, totalToLose, pct, weeklyRate, projectedDate, daysTracked, withAvg, lowest, lastDelta,
+    change7: changeOver(7), change30: changeOver(30), currentStreak, longestStreak, daysSinceLast, consistency, currentDose,
     milestones, weeks,
-    avg7now, avg30now, allTimeAvg, avgPerDay, avgPerWeek, bestWeek, recentWeekly
+    avg7now: n ? withAvg[n - 1].avg : null, avg30now: n ? withAvg[n - 1].avg30 : null,
+    allTimeAvg: n ? s.reduce((a, e) => a + e.weight, 0) / n : null,
+    avgPerWeek: n >= 2 && daysTracked > 0 ? ((s[n - 1].weight - s[0].weight) / daysTracked) * 7 : null,
+    bestWeek: wkChanges.length ? Math.min(...wkChanges) : null,
+    recentWeekly: recent.length ? recent.reduce((a, c) => a + c, 0) / recent.length : null,
   };
 }
 
-// ---------- render: stats ----------
-function renderStats(s) {
-  const lostStr = s.totalLost >= 0 ? `−${s.totalLost.toFixed(1)}` : `+${Math.abs(s.totalLost).toFixed(1)}`;
-  const fmtDelta = (v) => v === null ? '—' : (v < 0 ? '−' : v > 0 ? '+' : '') + Math.abs(v).toFixed(1);
-  const deltaCls = (v) => (v !== null && v < 0) ? 'accent' : '';
-  document.getElementById('stats').innerHTML = `
-    <div class="stat">
-      <div class="stat-label">Current</div>
-      <div class="stat-value big">${s.current.toFixed(1)}<span class="stat-unit">lbs</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Lost</div>
-      <div class="stat-value ${s.totalLost > 0 ? 'accent' : ''}">${lostStr}<span class="stat-unit">lbs</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">To Go</div>
-      <div class="stat-value">${Math.max(0, s.toGo).toFixed(1)}<span class="stat-unit">lbs</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Progress</div>
-      <div class="stat-value">${s.pct.toFixed(0)}<span class="stat-unit">%</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Lowest</div>
-      <div class="stat-value">${s.lowest === null ? '—' : s.lowest.toFixed(1)}<span class="stat-unit">lbs</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Since Last</div>
-      <div class="stat-value ${deltaCls(s.lastDelta)}">${fmtDelta(s.lastDelta)}<span class="stat-unit">lbs</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">7-Day</div>
-      <div class="stat-value ${deltaCls(s.change7)}">${fmtDelta(s.change7)}<span class="stat-unit">lbs</span></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">30-Day</div>
-      <div class="stat-value ${deltaCls(s.change30)}">${fmtDelta(s.change30)}<span class="stat-unit">lbs</span></div>
-    </div>
-  `;
-}
 
-// ---------- render: progress ----------
-function renderProgress(s) {
-  document.getElementById('progress-fill').style.width = s.pct + '%';
-  document.getElementById('progress-marker').style.left = s.pct + '%';
-  document.getElementById('progress-start').textContent = settings.startWeight + ' lbs';
-  document.getElementById('progress-goal').textContent = 'Goal · ' + settings.goalWeight + ' lbs';
-  document.getElementById('start-display').textContent = settings.startWeight;
-  document.getElementById('goal-display').textContent = settings.goalWeight;
-}
-
-// ---------- render: chart ----------
-function renderChart(s) {
-  const empty = document.getElementById('chart-empty');
-  const svg = document.getElementById('chart');
-  if (s.withAvg.length === 0) {
-    empty.classList.remove('hidden');
-    svg.classList.add('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
-  svg.classList.remove('hidden');
-
-  const wrap = document.getElementById('chart-wrap');
-  const W = wrap.clientWidth;
-  const H = 280;
-  const padL = 38, padR = 16, padT = 14, padB = 32;
-  const innerW = W - padL - padR;
-  const innerH = H - padT - padB;
-
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-
-  const data = s.withAvg;
-  const allW = data.map(d => d.weight).concat([settings.startWeight, settings.goalWeight]);
-  const yMin = Math.min(...allW);
-  const yMax = Math.max(...allW);
-  const pad = Math.max(2, (yMax - yMin) * 0.15);
-  const yLo = Math.floor(yMin - pad);
-  const yHi = Math.ceil(yMax + pad);
-
-  const xAt = i => padL + (data.length === 1 ? innerW / 2 : (i / (data.length - 1)) * innerW);
-  const yAt = w => padT + innerH - ((w - yLo) / (yHi - yLo)) * innerH;
-
-  const dailyPath = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.weight)).join(' ');
-  const avgPath = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.avg)).join(' ');
-  const avg30Path = data.map((d, i) => (i === 0 ? 'M' : 'L') + xAt(i) + ',' + yAt(d.avg30)).join(' ');
-
-  const tickCount = 4;
-  let yTicks = '';
-  for (let i = 0; i <= tickCount; i++) {
-    const v = yLo + (yHi - yLo) * (i / tickCount);
-    const y = yAt(v);
-    yTicks += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--rule)" stroke-width="1"/>`;
-    yTicks += `<text x="${padL - 8}" y="${y + 3}" text-anchor="end">${Math.round(v)}</text>`;
-  }
-
-  const maxXTicks = Math.min(data.length, 6);
-  let xTicks = '';
-  if (data.length > 1) {
-    for (let i = 0; i < maxXTicks; i++) {
-      const idx = Math.round((i / (maxXTicks - 1)) * (data.length - 1));
-      const x = xAt(idx);
-      xTicks += `<text x="${x}" y="${H - 12}" text-anchor="middle">${fmtDate(data[idx].date)}</text>`;
+// ---------- CLOUD storage: this device's copy + Vercel Blob via /api/journal ----------
+const Store = (() => {
+  const K_ENTRIES = 'wj:entries:v1', K_SETTINGS = 'wj:settings:v1', K_EXPORT = 'wj:lastExport:v1';
+  let queue = Promise.resolve();
+  const saveLocal = () => {
+    try { localStorage.setItem(K_ENTRIES, JSON.stringify(entries)); } catch (e) {}
+    try { localStorage.setItem(K_SETTINGS, JSON.stringify(settings)); } catch (e) {}
+  };
+  function apply(state) {
+    if (!state || !Array.isArray(state.entries)) return;
+    if (state.entries.length < entries.length) {
+      try { localStorage.setItem('wj:entries:pre-sync', JSON.stringify(entries)); } catch (e) {}
     }
+    entries = normalize(state.entries);
+    if (state.settings && isFinite(state.settings.startWeight) && isFinite(state.settings.goalWeight)) {
+      settings = { startWeight: Number(state.settings.startWeight), goalWeight: Number(state.settings.goalWeight) };
+      syncGoalInputs();
+    }
+    saveLocal();
+    render();
+  }
+  function send(body) {
+    queue = queue.then(async () => {
+      setSync('saving');
+      try {
+        const res = await fetch('/api/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        apply(await res.json());
+        setSync('synced');
+        return true;
+      } catch (err) { console.error(err); setSync('error'); return false; }
+    });
+    return queue;
+  }
+  function startup() {
+    // Sends what's on this device; the server only adds dates it doesn't have
+    // and never brings back entries deleted on another device.
+    let saved = null;
+    try { const raw = localStorage.getItem(K_SETTINGS); if (raw) saved = JSON.parse(raw); } catch (e) {}
+    return send({ op: 'merge', entries, settings: saved });
+  }
+  return {
+    init() {
+      try { entries = normalize(JSON.parse(localStorage.getItem(K_ENTRIES) || '[]')); } catch (e) {}
+      try {
+        const s = JSON.parse(localStorage.getItem(K_SETTINGS) || 'null');
+        if (s && isFinite(s.startWeight) && isFinite(s.goalWeight)) settings = { startWeight: Number(s.startWeight), goalWeight: Number(s.goalWeight) };
+      } catch (e) {}
+      setTimeout(startup, 0);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') startup(); });
+    },
+    upsert(rec) { saveLocal(); send({ op: 'upsert', entry: rec }); },
+    remove(date) { saveLocal(); send({ op: 'delete', date }); },
+    saveSettings(s) { saveLocal(); send({ op: 'settings', settings: s }); },
+    importMerge(clean, sets) {
+      saveLocal();
+      send({ op: 'merge', entries: clean, settings: sets, overwrite: true });
+    },
+    lastExport() { try { return localStorage.getItem(K_EXPORT); } catch (e) { return null; } },
+    async exportFile(filename, text, mime) {
+      const blob = new Blob([text], { type: mime });
+      if (window.navigator.standalone === true && navigator.canShare) {
+        try {
+          const file = new File([blob], filename, { type: mime });
+          if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: filename }); done(); return; }
+        } catch (err) { if (err && err.name === 'AbortError') { $('bk-msg').textContent = 'Export cancelled.'; return; } }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      done();
+      function done() { try { localStorage.setItem(K_EXPORT, new Date().toISOString()); } catch (e) {} $('bk-msg').textContent = 'Backup exported.'; render(); }
+    },
+  };
+})();
+
+// ---------- state ----------
+const DEFAULT_SETTINGS = { startWeight: 191, goalWeight: 170 };
+let entries = [];          // sorted ascending by date
+let settings = { ...DEFAULT_SETTINGS };
+let range = 90;            // trend range in days, 0 = all
+let openRow = null;        // date of expanded history row
+let editing = null;        // date being edited
+let pendingDelete = null, pendingTimer = null;
+const PAGES = { today: 'Today', trend: 'Trend', stats: 'Stats', history: 'History', settings: 'Settings' };
+let currentPage = 'today';
+
+function normalize(list) {
+  return (list || []).filter(e => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && isFinite(e.weight) && Number(e.weight) > 0)
+    .map(e => ({ date: e.date, weight: Number(e.weight), dose: e.dose || '', mood: e.mood || '', side: e.side || '', notes: e.notes || '' }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+function upsertMem(rec) {
+  const i = entries.findIndex(e => e.date === rec.date);
+  if (i >= 0) entries[i] = rec; else entries.push(rec);
+  entries.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// ---------- navigation ----------
+function showPage(name) {
+  if (!PAGES[name]) name = 'today';
+  currentPage = name;
+  document.querySelectorAll('.page').forEach(p => { p.hidden = p.dataset.page !== name; });
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.dataset.tab === name) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+  });
+  $('page-title').textContent = PAGES[name];
+  window.scrollTo(0, 0);
+  if (name === 'trend') renderChart(compute());
+  try { history.replaceState(null, '', '#' + name); } catch (e) {}
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showPage(t.dataset.tab)));
+
+// ---------- render ----------
+function tile(label, value, unit, c = '', note = '') {
+  return `<div class="tile"><span class="label">${label}</span><span class="v ${c}">${value}${unit ? `<span class="u">${unit}</span>` : ''}</span>${note ? `<span class="note">${note}</span>` : ''}</div>`;
+}
+
+function render() {
+  const s = compute();
+  // Today
+  $('big').textContent = s.n ? s.current.toFixed(1) : '–';
+  $('current-label').textContent = s.n ? 'Current weight · ' + fmtShort(entries[s.n - 1].date) : 'Current weight';
+  $('mini-lost').textContent = s.n ? signed(-s.totalLost) : '–';
+  $('mini-lost').className = 'v ' + (s.n ? cls(-s.totalLost) : '');
+  $('mini-togo').textContent = s.n ? Math.max(0, s.toGo).toFixed(1) : '–';
+  renderRuler(s);
+  const loggedToday = entries.some(e => e.date === todayISO());
+  $('log-hint').textContent = editing ? '' : loggedToday ? 'Today is logged' : (s.daysSinceLast ? `Last: ${s.daysSinceLast} ${s.daysSinceLast === 1 ? 'day' : 'days'} ago` : '');
+  $('quick').innerHTML = [
+    tile('Since last', signed(s.lastDelta), 'lbs', cls(s.lastDelta)),
+    tile('7 days', signed(s.change7), 'lbs', cls(s.change7)),
+    tile('Streak', s.n ? s.currentStreak : '–', s.n ? (s.currentStreak === 1 ? 'day' : 'days') : ''),
+  ].join('');
+
+  // Trend
+  if (currentPage === 'trend') renderChart(s);
+  if (s.weeklyRate !== null) {
+    const r = s.weeklyRate;
+    const proj = s.projectedDate ? s.projectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '–';
+    $('pace').innerHTML = [
+      tile('Weekly pace', signed(-r, 2), 'lbs/wk', cls(-r)),
+      tile('Recent 4 wk', signed(s.recentWeekly), 'lbs/wk', cls(s.recentWeekly)),
+      tile('Best week', signed(s.bestWeek), 'lbs', cls(s.bestWeek)),
+      tile('Goal by', proj, ''),
+    ].join('');
+    const note = r >= 1.5 ? 'Strong pace, typical for early semaglutide.' : r >= 0.5 ? 'Healthy, sustainable rate.' : r >= 0 ? 'Gentle progress. Give it time.' : 'Trending up. Worth checking in with your doctor.';
+    const projNote = s.projectedDate ? ` At this pace you reach your goal in about ${daysBetween(todayISO(), isoOf(s.projectedDate))} days.` : '';
+    $('pace-note').textContent = note + projNote;
   } else {
-    xTicks = `<text x="${xAt(0)}" y="${H - 12}" text-anchor="middle">${fmtDate(data[0].date)}</text>`;
+    $('pace').innerHTML = '';
+    $('pace-note').textContent = 'Pace shows up after two weigh-ins on different days.';
   }
 
-  const goalY = yAt(settings.goalWeight);
-  const startY = yAt(settings.startWeight);
+  // Stats
+  $('stats').innerHTML = [
+    tile('Lowest', s.lowest === null ? '–' : s.lowest.toFixed(1), 'lbs'),
+    tile('30 days', signed(s.change30), 'lbs', cls(s.change30)),
+    tile('7-day avg', s.avg7now === null ? '–' : s.avg7now.toFixed(1), 'lbs'),
+    tile('30-day avg', s.avg30now === null ? '–' : s.avg30now.toFixed(1), 'lbs'),
+    tile('All-time avg', s.allTimeAvg === null ? '–' : s.allTimeAvg.toFixed(1), 'lbs'),
+    tile('Avg / week', signed(s.avgPerWeek), 'lbs', cls(s.avgPerWeek)),
+    tile('Progress', s.pct.toFixed(0), '%'),
+    tile('Days tracked', Math.round(s.daysTracked), 'days'),
+  ].join('');
+  $('streak-panel').hidden = !s.n;
+  if (s.n) {
+    $('streaks').innerHTML = [
+      tile('Current streak', s.currentStreak, s.currentStreak === 1 ? 'day' : 'days'),
+      tile('Longest', s.longestStreak, s.longestStreak === 1 ? 'day' : 'days'),
+      tile('Days logged', Math.round(s.consistency), '%'),
+      s.currentDose ? tile('Dose', esc(s.currentDose), '') : tile('Last logged', s.daysSinceLast === 0 ? 'Today' : s.daysSinceLast, s.daysSinceLast === 0 ? '' : 'days ago'),
+    ].join('');
+    let nextMarked = false;
+    $('milestones').innerHTML = s.milestones.map(m => {
+      let c = 'ms';
+      if (m.reached) c += ' done'; else if (!nextMarked) { c += ' next'; nextMarked = true; }
+      return `<span class="${c}">${m.label}</span>`;
+    }).join('');
+  }
+  $('weekly-panel').hidden = s.weeks.length < 2;
+  if (s.weeks.length >= 2) {
+    const shown = s.weeks.slice().reverse().slice(0, 6);
+    const maxDrop = Math.max(0.1, ...shown.map(w => w.change !== null && w.change < 0 ? -w.change : 0));
+    $('weeks').innerHTML = shown.map(w => `
+      <div class="wk">
+        <span>${fmtShort(w.weekStart)}</span>
+        <div class="bar"><b style="width:${w.change !== null && w.change < 0 ? (-w.change / maxDrop) * 100 : 0}%"></b></div>
+        <span class="num">${w.avg.toFixed(1)}</span>
+        <span class="num ${cls(w.change)}">${signed(w.change)}</span>
+      </div>`).join('');
+  }
 
-  let dots = '';
-  data.forEach((d, i) => {
-    dots += `<circle cx="${xAt(i)}" cy="${yAt(d.weight)}" r="3" fill="var(--ink)" data-idx="${i}"/>`;
-  });
+  renderHistory();
+  renderBackupCount();
+}
 
-  let hits = '';
-  data.forEach((d, i) => {
-    hits += `<circle cx="${xAt(i)}" cy="${yAt(d.weight)}" r="18" fill="transparent" data-idx="${i}" class="hit"/>`;
-  });
+function renderRuler(s) {
+  const ruler = $('ruler');
+  ruler.querySelectorAll('.tick, .tick-label').forEach(el => el.remove());
+  const start = settings.startWeight, goal = settings.goalWeight, span = start - goal;
+  $('ruler-start').textContent = 'Start ' + start;
+  $('ruler-goal').textContent = 'Goal ' + goal;
+  $('ruler-pct').textContent = s.n ? s.pct.toFixed(0) + '% there' : '';
+  $('ruler-fill').style.width = s.pct + '%';
+  $('ruler-marker').style.left = s.pct + '%';
+  if (span <= 0) return;
+  const labelStep = span <= 30 ? 5 : span <= 80 ? 10 : 20;
+  const minorStep = span <= 60 ? 1 : 5;
+  const frag = document.createDocumentFragment();
+  for (let w = Math.ceil(goal); w <= start; w += minorStep) {
+    const pos = ((start - w) / span) * 100;
+    const t = document.createElement('div');
+    const major = w % labelStep === 0;
+    t.className = 'tick' + (major ? ' major' : '');
+    t.style.left = pos + '%';
+    frag.appendChild(t);
+    if (major && pos > 8 && pos < 92) {
+      const l = document.createElement('div');
+      l.className = 'tick-label'; l.style.left = pos + '%'; l.textContent = w;
+      frag.appendChild(l);
+    }
+  }
+  ruler.appendChild(frag);
+}
 
-  svg.innerHTML = `
-    ${yTicks}
-    <line x1="${padL}" y1="${startY}" x2="${W - padR}" y2="${startY}" stroke="var(--rule)" stroke-dasharray="2 4" stroke-width="1"/>
-    <line x1="${padL}" y1="${goalY}" x2="${W - padR}" y2="${goalY}" stroke="var(--secondary)" stroke-dasharray="4 4" stroke-width="1.25"/>
-    <text x="${W - padR}" y="${goalY - 4}" text-anchor="end" style="fill: var(--secondary);">Goal ${settings.goalWeight}</text>
-    <path d="${avg30Path}" fill="none" stroke="var(--secondary)" stroke-width="2" opacity="0.75"/>
-    <path d="${avgPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
-    <path d="${dailyPath}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+// ---------- chart ----------
+function renderChart(s) {
+  const svg = $('chart'), box = $('chart-box');
+  let data = s.withAvg;
+  if (range && data.length) {
+    const cutoff = new Date(toDate(todayISO()).getTime() - range * 86400000);
+    data = data.filter(d => toDate(d.date) >= cutoff);
+  }
+  $('chart-empty').hidden = data.length > 0;
+  $('chart-empty').textContent = s.withAvg.length ? 'No weigh-ins in this range.' : 'Your trend line appears after your first weigh-in.';
+  svg.toggleAttribute('hidden', data.length === 0);
+  $('range-change').textContent = data.length >= 2 ? signed(data[data.length - 1].avg - data[0].avg) + ' lbs (7-day avg)' : '';
+  $('range-change').className = 'label ' + (data.length >= 2 ? cls(data[data.length - 1].avg - data[0].avg) : '');
+  if (!data.length) return;
+
+  const W = Math.max(260, box.clientWidth), H = 230;
+  const pL = 32, pR = 8, pT = 12, pB = 24;
+  const iW = W - pL - pR, iH = H - pT - pB;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const vals = data.map(d => d.weight).concat(data.map(d => d.avg30));
+  const showGoal = settings.goalWeight >= Math.min(...vals) - 8;
+  if (showGoal) vals.push(settings.goalWeight);
+  const lo = Math.floor(Math.min(...vals) - 0.5), hi = Math.ceil(Math.max(...vals) + 0.5);
+  const t0 = toDate(data[0].date).getTime(), t1 = toDate(data[data.length - 1].date).getTime();
+  const xAt = (iso) => pL + (t1 === t0 ? iW / 2 : ((toDate(iso).getTime() - t0) / (t1 - t0)) * iW);
+  const yAt = (w) => pT + iH - ((w - lo) / (hi - lo || 1)) * iH;
+  const path = (key) => data.map((d, i) => (i ? 'L' : 'M') + xAt(d.date).toFixed(1) + ',' + yAt(d[key]).toFixed(1)).join('');
+
+  const spanW = hi - lo;
+  const step = spanW <= 8 ? 1 : spanW <= 16 ? 2 : spanW <= 40 ? 5 : 10;
+  let grid = '';
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+    grid += `<line x1="${pL}" x2="${W - pR}" y1="${yAt(v)}" y2="${yAt(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pL - 5}" y="${yAt(v) + 3}" text-anchor="end">${v}</text>`;
+  }
+  let xt = '';
+  const nTicks = Math.min(data.length, W < 420 ? 3 : 5);
+  for (let i = 0; i < nTicks; i++) {
+    const t = nTicks === 1 ? t0 : t0 + (i / (nTicks - 1)) * (t1 - t0);
+    const iso = isoOf(new Date(t));
+    const anchor = nTicks === 1 ? 'middle' : i === 0 ? 'start' : i === nTicks - 1 ? 'end' : 'middle';
+    xt += `<text x="${xAt(iso)}" y="${H - 6}" text-anchor="${anchor}">${fmtShort(iso)}</text>`;
+  }
+  const gy = yAt(settings.goalWeight);
+  const area = path('avg') + `L${xAt(data[data.length - 1].date)},${pT + iH}L${xAt(data[0].date)},${pT + iH}Z`;
+  const r = data.length > 90 ? 1.5 : data.length > 40 ? 2 : 2.6;
+  const dots = data.map(d => `<circle cx="${xAt(d.date)}" cy="${yAt(d.weight)}" r="${r}" fill="var(--ink)"/>`).join('');
+  const last = data[data.length - 1];
+
+  svg.innerHTML = `${grid}
+    ${showGoal ? `<line x1="${pL}" x2="${W - pR}" y1="${gy}" y2="${gy}" stroke="var(--goal)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="${W - pR}" y="${gy - 4}" text-anchor="end" style="fill:var(--goal)">Goal ${settings.goalWeight}</text>` : ''}
+    <path d="${area}" fill="var(--trend-soft)" stroke="none"/>
+    <path d="${path('avg30')}" fill="none" stroke="var(--long)" stroke-width="2" stroke-linejoin="round"/>
+    <path d="${path('weight')}" fill="none" stroke="var(--ink)" stroke-width="1" opacity="0.5" stroke-linejoin="round"/>
+    <path d="${path('avg')}" fill="none" stroke="var(--trend)" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}
-    ${xTicks}
-    ${hits}
-  `;
+    <circle cx="${xAt(last.date)}" cy="${yAt(last.avg)}" r="5" fill="var(--trend)" stroke="var(--surface)" stroke-width="2"/>
+    ${xt}
+    <line id="hover-line" x1="0" x2="0" y1="${pT}" y2="${pT + iH}" stroke="var(--muted)" stroke-width="1" opacity="0"/>
+    <rect id="hit" x="${pL}" y="0" width="${iW}" height="${H}" fill="transparent"/>`;
 
-  const tooltip = document.getElementById('tooltip');
-  const hitEls = svg.querySelectorAll('.hit');
-  let activeIdx = null;
-
-  const showTooltip = (idx) => {
-    const d = data[idx];
-    tooltip.innerHTML = `
-      <div class="tt-date">${fmtDateLong(d.date)}</div>
-      <div class="tt-row"><span>Daily</span><span class="tt-val">${d.weight.toFixed(1)} lbs</span></div>
-      <div class="tt-row"><span style="color: var(--accent);">7-day avg</span><span class="tt-val" style="color: var(--accent);">${d.avg.toFixed(1)} lbs</span></div>
-      ${d.dose ? `<div class="tt-row"><span>Dose</span><span class="tt-val">${escapeHtml(d.dose)}</span></div>` : ''}
-      ${d.notes ? `<div class="tt-row" style="border-top: 1px solid var(--rule); margin-top: 4px; padding-top: 4px;"><span style="font-style: italic; font-family: Fraunces, serif; color: var(--ink-soft);">${escapeHtml(d.notes)}</span></div>` : ''}
-    `;
-    tooltip.classList.add('visible');
-    const x = xAt(idx);
-    const y = yAt(d.weight);
-    const ttW = 170;
-    let left = x - ttW / 2;
-    if (left < 0) left = 4;
-    if (left + ttW > W) left = W - ttW - 4;
-    tooltip.style.left = left + 'px';
-    tooltip.style.top = Math.max(0, y - 90) + 'px';
-    tooltip.style.width = ttW + 'px';
+  const tip = $('tip'), hl = svg.querySelector('#hover-line'), hit = svg.querySelector('#hit');
+  const show = (clientX) => {
+    const rect = svg.getBoundingClientRect();
+    const x = (clientX - rect.left) * (W / rect.width);
+    let best = data[0], bd = Infinity;
+    data.forEach(d => { const dd = Math.abs(xAt(d.date) - x); if (dd < bd) { bd = dd; best = d; } });
+    const px = xAt(best.date);
+    hl.setAttribute('x1', px); hl.setAttribute('x2', px); hl.setAttribute('opacity', '0.6');
+    tip.innerHTML = `<div class="label">${fmtLong(best.date)}</div>
+      <div class="r"><span>Weight</span><span class="num">${best.weight.toFixed(1)}</span></div>
+      <div class="r"><span style="color:var(--trend)">7-day avg</span><span class="num">${best.avg.toFixed(1)}</span></div>
+      ${best.dose ? `<div class="r"><span>Dose</span><span>${esc(best.dose)}</span></div>` : ''}`;
+    const sx = px * (rect.width / W);
+    tip.style.left = Math.max(0, Math.min(rect.width - 172, sx - 86)) + 'px';
+    tip.style.top = '0px';
+    tip.classList.add('on');
   };
+  const hide = () => { tip.classList.remove('on'); hl.setAttribute('opacity', '0'); };
+  hit.addEventListener('pointermove', e => show(e.clientX));
+  hit.addEventListener('pointerdown', e => show(e.clientX));
+  hit.addEventListener('pointerleave', hide);
+}
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+  range = Number(c.dataset.range);
+  document.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === c)));
+  renderChart(compute());
+}));
 
-  const hideTooltip = () => { tooltip.classList.remove('visible'); activeIdx = null; };
+// ---------- history: year > month > week > day ----------
+const openKeys = new Set();
+let historyDefaulted = false;
 
-  hitEls.forEach(el => {
-    el.addEventListener('mouseenter', () => showTooltip(parseInt(el.dataset.idx)));
-    el.addEventListener('mouseleave', hideTooltip);
-    el.addEventListener('touchstart', e => {
-      e.preventDefault();
-      const idx = parseInt(el.dataset.idx);
-      if (activeIdx === idx) { hideTooltip(); }
-      else { activeIdx = idx; showTooltip(idx); }
-    }, { passive: false });
-  });
+function weekStartOf(iso) { const d = toDate(iso); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoOf(d); }
+function groupBy(list, keyFn) {
+  const m = new Map();
+  list.forEach(e => { const k = keyFn(e); if (!m.has(k)) m.set(k, []); m.get(k).push(e); });
+  return m;
+}
+const avgOf = (list) => list.reduce((a, e) => a + e.weight, 0) / list.length;
 
-  document.addEventListener('touchstart', (e) => {
-    if (!wrap.contains(e.target)) hideTooltip();
-  });
+function summaryRow(key, level, label, sub, list, prevAvg) {
+  const avg = avgOf(list);
+  const chg = prevAvg === null ? null : avg - prevAvg;
+  const open = openKeys.has(key);
+  return `<button class="grow l${level}" data-key="${key}" aria-expanded="${open}">
+      <span class="chev" aria-hidden="true">${open ? '▾' : '▸'}</span>
+      <span class="gl">${label}<small>${sub}</small></span>
+      <span class="num">${avg.toFixed(1)}</span>
+      <span class="num chg ${cls(chg)}">${signed(chg)}</span>
+    </button>`;
 }
 
-// ---------- render: insights ----------
-function renderInsights(s) {
-  const el = document.getElementById('insights');
-  if (s.weeklyRate === null) { el.classList.add('hidden'); return; }
-  el.classList.remove('hidden');
-
-  const rate = s.weeklyRate;
-  let note;
-  if (rate >= 1.5) note = 'Strong pace — typical for early semaglutide.';
-  else if (rate >= 0.5) note = 'Healthy, sustainable rate.';
-  else if (rate >= 0) note = 'Gentle progress — give it time.';
-  else note = 'Trending up. Worth checking in with your doctor.';
-
-  const projStr = s.projectedDate
-    ? s.projectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : '—';
-  const projNote = s.projectedDate
-    ? `At current pace, about ${Math.round(daysBetween(todayISO(), s.projectedDate.toISOString().split('T')[0]))} days away.`
-    : 'Need more data or a positive trend to project.';
-
-  el.innerHTML = `
-    <div class="insight">
-      <div class="insight-label">Weekly pace</div>
-      <div class="insight-value">${rate >= 0 ? '−' : '+'}${Math.abs(rate).toFixed(2)}<span class="insight-unit">lbs/wk</span></div>
-      <div class="insight-note">${note}</div>
-    </div>
-    <div class="insight">
-      <div class="insight-label">Projected goal</div>
-      <div class="insight-value">${projStr}</div>
-      <div class="insight-note">${projNote}</div>
-    </div>
-    <div class="insight">
-      <div class="insight-label">Days tracked</div>
-      <div class="insight-value">${Math.round(s.daysTracked)}<span class="insight-unit">days</span></div>
-      <div class="insight-note">${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} logged.</div>
-    </div>
-  `;
-}
-
-// ---------- render: streaks & milestones ----------
-function renderStreaks(s) {
-  const card = document.getElementById('streak-card');
-  if (s.sorted.length === 0) { card.classList.add('hidden'); return; }
-  card.classList.remove('hidden');
-
-  const grid = document.getElementById('streak-grid');
-  const cells = [
-    { label: 'Current streak', value: s.currentStreak, unit: s.currentStreak === 1 ? 'day' : 'days' },
-    { label: 'Longest streak', value: s.longestStreak, unit: s.longestStreak === 1 ? 'day' : 'days' },
-    { label: 'Days logged', value: s.consistency === null ? '—' : Math.round(s.consistency), unit: s.consistency === null ? '' : '%' },
-    s.currentDose
-      ? { label: 'Current dose', value: s.currentDose, unit: '' }
-      : { label: 'Last logged', value: s.daysSinceLast === 0 ? 'Today' : s.daysSinceLast, unit: s.daysSinceLast === 0 ? '' : (s.daysSinceLast === 1 ? 'day ago' : 'days ago') }
-  ];
-  grid.innerHTML = cells.map(c => `
-    <div class="streak">
-      <div class="streak-label">${c.label}</div>
-      <div class="streak-value">${c.value}${c.unit ? `<span class="streak-unit">${c.unit}</span>` : ''}</div>
-    </div>
-  `).join('');
-
-  const ms = document.getElementById('milestones');
-  let nextMarked = false;
-  ms.innerHTML = s.milestones.map(m => {
-    let cls = 'milestone';
-    if (m.reached) cls += ' reached';
-    else if (!nextMarked) { cls += ' next'; nextMarked = true; }
-    return `<span class="${cls}"><span class="dot"></span>${m.label}</span>`;
-  }).join('');
-}
-
-// ---------- render: weekly summary ----------
-function renderWeekly(s) {
-  const card = document.getElementById('weekly-card');
-  const list = document.getElementById('weeks-list');
-  if (!s.weeks || s.weeks.length < 2) { card.classList.add('hidden'); return; }
-  card.classList.remove('hidden');
-
-  const recent = s.weeks.slice().reverse().slice(0, 8);
-  list.innerHTML = recent.map(w => {
-    const chgCls = w.change === null ? '' : (w.change < 0 ? 'down' : w.change > 0 ? 'up' : '');
-    const chgStr = w.change === null ? '—' : (w.change < 0 ? '−' : w.change > 0 ? '+' : '') + Math.abs(w.change).toFixed(1);
-    return `
-      <div class="week-row">
-        <span class="week-label">Week of ${fmtDate(w.weekStart)}</span>
-        <span class="week-avg">${w.avg.toFixed(1)}<span class="u"> lbs avg</span></span>
-        <span class="week-change ${chgCls}">${chgStr}</span>
+function dayRow(e, prev) {
+  const d = prev ? e.weight - prev.weight : null;
+  const dt = toDate(e.date);
+  const open = openRow === e.date;
+  const flags = [e.dose ? `<span class="dot-flag dose">${esc(e.dose)}</span>` : '', e.mood ? `<span class="dot-flag">${esc(e.mood)}</span>` : '', (e.notes || e.side) ? `<span class="dot-flag">note</span>` : ''].join('');
+  let html = `<button class="hrow" data-row="${e.date}" aria-expanded="${open}">
+      <span class="d">${dt.toLocaleDateString('en-US', { weekday: 'short' })}<small>${dt.getDate()}</small></span>
+      <span class="flags">${flags}</span>
+      <span class="w">${e.weight.toFixed(1)}</span>
+      <span class="chg ${cls(d)}">${d === null ? '' : signed(d)}</span>
+    </button>`;
+  if (open) {
+    const confirming = pendingDelete === e.date;
+    html += `<div class="hdetail">
+      <dl>
+        <dt>Date</dt><dd>${fmtLong(e.date)}</dd>
+        ${e.dose ? `<dt>Dose</dt><dd>${esc(e.dose)}</dd>` : ''}
+        ${e.mood ? `<dt>Mood</dt><dd>${esc(e.mood)}</dd>` : ''}
+        ${e.side ? `<dt>Side effects</dt><dd>${esc(e.side)}</dd>` : ''}
+        ${e.notes ? `<dt>Notes</dt><dd>${esc(e.notes)}</dd>` : ''}
+      </dl>
+      <div class="row">
+        <button class="btn sm" data-edit="${e.date}">Edit</button>
+        <button class="btn sm danger" data-del="${e.date}">${confirming ? 'Tap again to delete' : 'Delete'}</button>
       </div>
-    `;
-  }).join('');
+    </div>`;
+  }
+  return html;
 }
 
-// ---------- render: averages & trends ----------
-function renderAverages(s) {
-  const card = document.getElementById('averages-card');
-  if (s.sorted.length < 2) { card.classList.add('hidden'); return; }
-  card.classList.remove('hidden');
+function renderHistory() {
+  $('rec-count').textContent = `${entries.length} ${entries.length === 1 ? 'weigh-in' : 'weigh-ins'}`;
+  $('record-empty').hidden = entries.length > 0;
+  if (!entries.length) { $('record').innerHTML = ''; return; }
+  if (!historyDefaulted) {
+    // Start with the latest year and month open.
+    const last = entries[entries.length - 1].date;
+    openKeys.add('y' + last.slice(0, 4)); openKeys.add('m' + last.slice(0, 7));
+    historyDefaulted = true;
+  }
+  const prevOf = new Map(entries.map((e, i) => [e.date, i ? entries[i - 1] : null]));
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
-  const lbs = v => v === null ? '—' : v.toFixed(1);
-  const delta = v => v === null ? '—' : (v < 0 ? '−' : v > 0 ? '+' : '') + Math.abs(v).toFixed(1);
-  const dCls = v => (v !== null && v < 0) ? 'accent' : '';
+  // Averages of the previous period, computed oldest-first so "change" compares to the period before.
+  const years = [...groupBy(entries, e => e.date.slice(0, 4))];
+  const months = [...groupBy(entries, e => e.date.slice(0, 7))];
+  const prevAvg = new Map();
+  [years, months].forEach(groups => groups.forEach(([k, list], i) => prevAvg.set(k, i ? avgOf(groups[i - 1][1]) : null)));
 
-  const cells = [
-    { label: '7-day average', value: lbs(s.avg7now), unit: 'lbs' },
-    { label: '30-day average', value: lbs(s.avg30now), unit: 'lbs' },
-    { label: 'All-time average', value: lbs(s.allTimeAvg), unit: 'lbs' },
-    { label: 'Avg / week', value: delta(s.avgPerWeek), unit: 'lbs', cls: dCls(s.avgPerWeek) },
-    { label: 'Recent pace (4 wk)', value: delta(s.recentWeekly), unit: 'lbs/wk', cls: dCls(s.recentWeekly) },
-    { label: 'Best week', value: delta(s.bestWeek), unit: 'lbs', cls: dCls(s.bestWeek) }
-  ];
-  document.getElementById('averages-grid').innerHTML = cells.map(c => `
-    <div class="streak">
-      <div class="streak-label">${c.label}</div>
-      <div class="streak-value ${c.cls || ''}">${c.value}<span class="streak-unit">${c.unit}</span></div>
-    </div>
-  `).join('');
-}
-
-// ---------- render: entries ----------
-function renderEntries(s) {
-  const card = document.getElementById('entries-card');
-  const list = document.getElementById('entries-list');
-  if (s.sorted.length === 0) { card.classList.add('hidden'); return; }
-  card.classList.remove('hidden');
-
-  const reversed = s.sorted.slice().reverse();
-  list.innerHTML = reversed.map((e, i) => {
-    const prev = s.sorted[s.sorted.length - 2 - i];
-    const delta = prev ? e.weight - prev.weight : null;
-    const deltaClass = delta === null ? '' : (delta < 0 ? 'down' : delta > 0 ? 'up' : '');
-    const deltaStr = delta === null ? '' : (delta > 0 ? '+' : '') + delta.toFixed(1);
-    return `
-      <div class="entry" data-date="${e.date}">
-        <div class="entry-date">${fmtDateLong(e.date)}</div>
-        <div class="entry-weight">${e.weight.toFixed(1)} <span class="entry-unit">lbs</span></div>
-        <div class="entry-delta ${deltaClass}">${deltaStr}</div>
-        <button class="delete-btn" aria-label="delete" data-date="${e.date}">×</button>
-        ${(e.dose || e.mood || e.side) ? `<div class="entry-meta">
-          ${e.dose ? `<span class="tag dose">${escapeHtml(e.dose)}</span>` : ''}
-          ${e.mood ? `<span class="tag mood">${escapeHtml(e.mood)}</span>` : ''}
-          ${e.side ? `<span class="tag side">${escapeHtml(e.side)}</span>` : ''}
-        </div>` : ''}
-        ${e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
-      </div>
-    `;
-  }).join('');
-
-  list.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (confirm('Delete this entry?')) {
-        entries = entries.filter(e => e.date !== btn.dataset.date);
-        saveEntries();
-        render();
-        cloudSend({ op: 'delete', date: btn.dataset.date });
-      }
+  let html = '';
+  years.slice().reverse().forEach(([y, yList]) => {
+    html += summaryRow('y' + y, 0, y, plural(yList.length, 'weigh-in'), yList, prevAvg.get(y));
+    if (!openKeys.has('y' + y)) return;
+    months.filter(([m]) => m.startsWith(y)).reverse().forEach(([m, mList]) => {
+      const mName = toDate(m + '-01').toLocaleDateString('en-US', { month: 'long' });
+      html += summaryRow('m' + m, 1, mName, plural(mList.length, 'weigh-in'), mList, prevAvg.get(m));
+      if (!openKeys.has('m' + m)) return;
+      const weeks = [...groupBy(mList, e => weekStartOf(e.date))];
+      weeks.slice().reverse().forEach(([w, wList]) => {
+        const i = weeks.findIndex(([k]) => k === w);
+        const first = wList[0].date, last = wList[wList.length - 1].date;
+        const label = first === last ? fmtShort(first) : `${fmtShort(first)} – ${toDate(last).getDate()}`;
+        const wPrev = i ? avgOf(weeks[i - 1][1]) : (() => {
+          const before = entries.filter(e => e.date < first && e.date >= isoOf(new Date(toDate(first).getTime() - 7 * 86400000)));
+          return before.length ? avgOf(before) : null;
+        })();
+        html += summaryRow('w' + m + w, 2, label, plural(wList.length, 'day'), wList, wPrev);
+        if (!openKeys.has('w' + m + w)) return;
+        html += '<div class="days">' + wList.slice().reverse().map(e => dayRow(e, prevOf.get(e.date))).join('') + '</div>';
+      });
     });
   });
+  $('record').innerHTML = html;
 }
-
-// ---------- render: presets ----------
-function renderPresets() {
-  const grid = document.getElementById('preset-grid');
-  grid.innerHTML = presets.map(p => `
-    <button class="preset" data-main="${p.main}" data-accent="${p.accent}">
-      <span class="preset-dots">
-        <span class="preset-dot" style="background:${p.main}"></span>
-        <span class="preset-dot" style="background:${p.accent}"></span>
-      </span>
-      <span class="preset-name">${p.name}</span>
-    </button>
-  `).join('');
-  grid.querySelectorAll('.preset').forEach(el => {
-    el.addEventListener('click', () => {
-      setColors(el.dataset.main, el.dataset.accent);
-    });
-  });
-}
-
-// ---------- render: all ----------
-function render() {
-  renderBackupStatus();
-  const s = compute();
-  renderStats(s);
-  renderProgress(s);
-  renderChart(s);
-  renderWeekly(s);
-  renderInsights(s);
-  renderStreaks(s);
-  renderAverages(s);
-  renderEntries(s);
-  applyColors();
-}
-
-// ---------- events ----------
-function setupEvents() {
-  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  document.getElementById('input-date').value = todayISO();
-  document.getElementById('input-date').max = todayISO();
-
-  document.getElementById('add-btn').addEventListener('click', () => {
-    const w = parseFloat(document.getElementById('input-weight').value);
-    const d = document.getElementById('input-date').value;
-    const n = document.getElementById('input-notes').value.trim();
-    const dose = document.getElementById('input-dose').value.trim();
-    const mood = document.getElementById('input-mood').value;
-    const side = document.getElementById('input-side').value.trim();
-    if (!isFinite(w) || w <= 0 || w > 1000) {
-      document.getElementById('input-weight').focus();
+$('record').addEventListener('click', (ev) => {
+  const g = ev.target.closest('[data-key]');
+  const row = ev.target.closest('[data-row]');
+  const ed = ev.target.closest('[data-edit]');
+  const del = ev.target.closest('[data-del]');
+  if (g) { const k = g.dataset.key; openKeys.has(k) ? openKeys.delete(k) : openKeys.add(k); renderHistory(); return; }
+  if (row) { openRow = openRow === row.dataset.row ? null : row.dataset.row; pendingDelete = null; renderHistory(); return; }
+  if (ed) { startEdit(ed.dataset.edit); return; }
+  if (del) {
+    const date = del.dataset.del;
+    if (pendingDelete !== date) {
+      pendingDelete = date; clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(() => { pendingDelete = null; renderHistory(); }, 4000);
+      renderHistory();
       return;
     }
-    if (!d) return;
-    const rec = { date: d, weight: w, notes: n, dose, mood, side };
-    const idx = entries.findIndex(e => e.date === d);
-    if (idx >= 0) entries[idx] = rec;
-    else entries.push(rec);
-    entries.sort((a, b) => a.date.localeCompare(b.date));
-    saveEntries();
-    cloudSend({ op: 'upsert', entry: rec });
-    document.getElementById('input-weight').value = '';
-    document.getElementById('input-notes').value = '';
-    document.getElementById('input-dose').value = '';
-    document.getElementById('input-mood').value = '';
-    document.getElementById('input-side').value = '';
-    document.getElementById('input-date').value = todayISO();
+    pendingDelete = null; clearTimeout(pendingTimer); openRow = null;
+    entries = entries.filter(x => x.date !== date);
     render();
-  });
-
-  document.getElementById('settings-btn').addEventListener('click', () => {
-    document.getElementById('draft-start').value = settings.startWeight;
-    document.getElementById('draft-goal').value = settings.goalWeight;
-    document.getElementById('settings-edit').classList.remove('hidden');
-    document.getElementById('settings-btn').classList.add('hidden');
-  });
-
-  document.getElementById('settings-cancel').addEventListener('click', () => {
-    document.getElementById('settings-edit').classList.add('hidden');
-    document.getElementById('settings-btn').classList.remove('hidden');
-  });
-
-  document.getElementById('settings-save').addEventListener('click', () => {
-    const s = parseFloat(document.getElementById('draft-start').value);
-    const g = parseFloat(document.getElementById('draft-goal').value);
-    if (!isFinite(s) || !isFinite(g) || s <= 0 || g <= 0) return;
-    settings.startWeight = s;
-    settings.goalWeight = g;
-    saveSettings();
-    cloudSend({ op: 'settings', settings });
-    document.getElementById('settings-edit').classList.add('hidden');
-    document.getElementById('settings-btn').classList.remove('hidden');
-    render();
-  });
-
-  // palette controls
-  document.getElementById('palette-trigger').addEventListener('click', () => {
-    document.getElementById('palette-panel').classList.toggle('hidden');
-  });
-  document.getElementById('palette-close').addEventListener('click', () => {
-    document.getElementById('palette-panel').classList.add('hidden');
-  });
-  document.getElementById('main-picker').addEventListener('input', (e) => {
-    setColors(e.target.value, colors.accent);
-  });
-  document.getElementById('accent-picker').addEventListener('input', (e) => {
-    setColors(colors.main, e.target.value);
-  });
-  document.getElementById('palette-reset').addEventListener('click', () => {
-    setColors(defaultColors.main, defaultColors.accent);
-  });
-
-  window.addEventListener('resize', () => render());
-}
-
-// ---------- backup: export / import ----------
-const STORAGE_LAST_EXPORT = 'wj:lastExport:v1';
-
-function fileStamp() {
-  return todayISO();
-}
-
-async function deliverFile(filename, text, mime) {
-  const blob = new Blob([text], { type: mime });
-  // iPhone home-screen app: use the share sheet (Save to Files, AirDrop, Mail)
-  const isStandaloneIOS = window.navigator.standalone === true;
-  if (isStandaloneIOS && navigator.canShare) {
-    try {
-      const file = new File([blob], filename, { type: mime });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename });
-        return true;
-      }
-    } catch (err) {
-      if (err && err.name === 'AbortError') return false;
-      console.error(err);
-    }
+    Store.remove(date);
   }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-  return true;
-}
-
-function markExported() {
-  try { localStorage.setItem(STORAGE_LAST_EXPORT, new Date().toISOString()); }
-  catch (err) { console.error(err); }
-  renderBackupStatus();
-}
-
-async function exportJSON() {
-  const payload = {
-    app: 'weight-journal',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    entries,
-    settings,
-    colors,
-  };
-  const ok = await deliverFile(
-    `weight-journal-backup-${fileStamp()}.json`,
-    JSON.stringify(payload, null, 2),
-    'application/json'
-  );
-  if (ok) markExported();
-}
-
-function csvCell(v) {
-  const s = v == null ? '' : String(v);
-  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-async function exportCSV() {
-  const header = ['Date', 'Weight (lbs)', 'Dose', 'Mood', 'Side effects', 'Notes'];
-  const rows = entries.map(e => [e.date, e.weight, e.dose, e.mood, e.side, e.notes].map(csvCell).join(','));
-  const csv = '﻿' + [header.join(','), ...rows].join('\r\n');
-  const ok = await deliverFile(`weight-journal-${fileStamp()}.csv`, csv, 'text/csv');
-  if (ok) markExported();
-}
-
-function validEntry(e) {
-  return e && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date)
-    && isFinite(parseFloat(e.weight)) && parseFloat(e.weight) > 0;
-}
-
-function importFromText(text) {
-  let data;
-  try { data = JSON.parse(text); }
-  catch (err) { alert('That file is not a valid Weight Journal backup.'); return; }
-
-  const incoming = Array.isArray(data) ? data : data && data.entries;
-  if (!Array.isArray(incoming)) { alert('No entries found in that file.'); return; }
-  const clean = incoming.filter(validEntry).map(e => ({
-    date: e.date,
-    weight: parseFloat(e.weight),
-    notes: e.notes || '',
-    dose: e.dose || '',
-    mood: e.mood || '',
-    side: e.side || '',
-  }));
-  if (!clean.length) { alert('No valid entries found in that file.'); return; }
-
-  const existingDates = new Set(entries.map(e => e.date));
-  const added = clean.filter(e => !existingDates.has(e.date)).length;
-  const overlapping = clean.length - added;
-  const msg = `Restore ${clean.length} entries from this backup?\n\n` +
-    `${added} new, ${overlapping} matching dates you already have (the backup's version will be used).\n\n` +
-    `Nothing currently saved will be deleted.`;
-  if (!confirm(msg)) return;
-
-  // Safety copy of what's here right now, before changing anything
-  try { localStorage.setItem('wj:entries:pre-import', JSON.stringify(entries)); }
-  catch (err) { console.error(err); }
-
-  const byDate = new Map(entries.map(e => [e.date, e]));
-  clean.forEach(e => byDate.set(e.date, e));
-  entries = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
-  saveEntries();
-
-  if (data && data.settings && isFinite(data.settings.startWeight) && isFinite(data.settings.goalWeight)) {
-    settings = { ...defaultSettings, ...data.settings };
-    saveSettings();
-  }
-  if (data && data.colors && data.colors.main && data.colors.accent) {
-    setColors(data.colors.main, data.colors.accent);
-  }
-  render();
-  renderBackupStatus();
-  cloudSend({ op: 'merge', entries: clean, settings: data && data.settings, overwrite: true });
-  alert(`Restored. You now have ${entries.length} entries.`);
-}
-
-function renderBackupStatus() {
-  const el = document.getElementById('backup-status');
-  if (!el) return;
-  let last = null;
-  try { last = localStorage.getItem(STORAGE_LAST_EXPORT); } catch (err) {}
-  const count = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
-  const when = last
-    ? 'Last export: ' + new Date(last).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'Never exported';
-  el.innerHTML = `${count}<br>${when}<br>${cloudStatusText()}`;
-}
-
-function bindBackup() {
-  document.getElementById('export-json-btn').addEventListener('click', exportJSON);
-  document.getElementById('export-csv-btn').addEventListener('click', exportCSV);
-  const fileInput = document.getElementById('import-file');
-  document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => {
-    const f = fileInput.files && fileInput.files[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => { importFromText(String(reader.result)); fileInput.value = ''; };
-    reader.onerror = () => alert('Could not read that file.');
-    reader.readAsText(f);
-  });
-}
-
-// ---------- cloud sync (Vercel Blob via /api/journal) ----------
-// The phone keeps a local copy so the app opens instantly; the cloud copy is the
-// one that matters. Every change is sent to the server, and on every open the
-// app sends anything the cloud is missing (for example, entries saved offline).
-let cloudState = 'connecting';   // connecting | synced | error
-let cloudLastSync = null;
-let cloudQueue = Promise.resolve();
-
-function cloudStatusText() {
-  if (cloudState === 'synced') {
-    const t = cloudLastSync ? cloudLastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
-    return 'Cloud: synced' + (t ? ' at ' + t : '');
-  }
-  if (cloudState === 'error') return 'Cloud: not reachable. Saved on this device; it will sync next time you open the app.';
-  return 'Cloud: connecting';
-}
-
-function applyCloud(state) {
-  if (!state || !Array.isArray(state.entries)) return;
-  // If the cloud copy has fewer entries than this device, keep a local safety copy first.
-  if (state.entries.length < entries.length) {
-    try { localStorage.setItem('wj:entries:pre-sync', JSON.stringify(entries)); } catch (err) {}
-  }
-  entries = state.entries.slice().sort((a, b) => a.date.localeCompare(b.date));
-  saveEntries();
-  if (state.settings && isFinite(state.settings.startWeight) && isFinite(state.settings.goalWeight)) {
-    settings = { ...defaultSettings, ...state.settings };
-    saveSettings();
-  }
-  cloudState = 'synced';
-  cloudLastSync = new Date();
-  render();
-}
-
-function cloudSend(body) {
-  cloudQueue = cloudQueue.then(async () => {
-    try {
-      const res = await fetch('/api/journal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        cache: 'no-store',
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      applyCloud(await res.json());
-    } catch (err) {
-      console.error(err);
-      cloudState = 'error';
-      renderBackupStatus();
-    }
-  });
-  return cloudQueue;
-}
-
-function cloudStartup() {
-  // Sends everything on this device; the server only adds what it doesn't
-  // already have (and never brings back entries deleted on another device).
-  // Goals are only sent if this device actually has saved ones (not the defaults).
-  let savedSettings = null;
-  try { const raw = localStorage.getItem(STORAGE_SETTINGS); if (raw) savedSettings = JSON.parse(raw); } catch (err) {}
-  return cloudSend({ op: 'merge', entries, settings: savedSettings });
-}
-
-// ---------- init ----------
-loadState();
-renderPresets();
-setupEvents();
-bindBackup();
-applyColors();
-if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(() => render());
-} else {
-  setTimeout(render, 100);
-}
-render();
-cloudStartup();
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') cloudStartup();
 });
+
+// ---------- log form ----------
+function setMore(open) {
+  document.querySelectorAll('[data-more]').forEach(el => { el.hidden = !open; });
+  $('more-toggle').hidden = open;
+  $('more-toggle').setAttribute('aria-expanded', String(open));
+}
+function resetForm() {
+  ['in-weight', 'in-dose', 'in-side', 'in-notes'].forEach(id => { $(id).value = ''; });
+  $('in-mood').value = ''; $('in-date').value = todayISO(); setMore(false);
+  editing = null; $('cancel-edit').hidden = true; $('log-title').textContent = 'Log a weigh-in'; $('save-btn').textContent = 'Save weigh-in';
+}
+function startEdit(date) {
+  const e = entries.find(x => x.date === date);
+  if (!e) return;
+  editing = date;
+  $('in-date').value = e.date; $('in-weight').value = e.weight;
+  $('in-dose').value = e.dose; $('in-mood').value = e.mood; $('in-side').value = e.side; $('in-notes').value = e.notes;
+  setMore(true);
+  $('log-title').textContent = 'Edit ' + fmtShort(date);
+  $('save-btn').textContent = 'Save changes';
+  $('cancel-edit').hidden = false;
+  $('form-msg').textContent = '';
+  showPage('today');
+  render();
+}
+$('more-toggle').addEventListener('click', () => setMore(true));
+$('cancel-edit').addEventListener('click', () => { resetForm(); render(); });
+$('in-date').value = todayISO();
+$('in-date').max = todayISO();
+$('log-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const date = $('in-date').value;
+  const weight = parseFloat($('in-weight').value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { $('form-msg').textContent = 'Pick a date.'; return; }
+  if (!isFinite(weight) || weight <= 0 || weight > 1000) { $('form-msg').textContent = 'Enter a weight between 1 and 1000 lbs.'; $('in-weight').focus(); return; }
+  const rec = { date, weight, dose: $('in-dose').value.trim(), mood: $('in-mood').value, side: $('in-side').value.trim(), notes: $('in-notes').value.trim() };
+  const existed = entries.some(e => e.date === date);
+  if (editing && editing !== date) { entries = entries.filter(x => x.date !== editing); Store.remove(editing); }
+  upsertMem(rec);
+  resetForm();
+  render();
+  $('form-msg').textContent = (existed ? 'Updated ' : 'Saved ') + fmtShort(date) + '.';
+  Store.upsert(rec);
+});
+
+// ---------- goals ----------
+function syncGoalInputs() {
+  if (document.activeElement !== $('in-start')) $('in-start').value = settings.startWeight;
+  if (document.activeElement !== $('in-goal')) $('in-goal').value = settings.goalWeight;
+}
+$('goal-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const st = parseFloat($('in-start').value), gl = parseFloat($('in-goal').value);
+  if (!isFinite(st) || !isFinite(gl) || st <= 0 || gl <= 0) { $('goal-msg').textContent = 'Enter both weights.'; return; }
+  settings = { startWeight: st, goalWeight: gl };
+  render();
+  $('goal-msg').textContent = 'Goals saved.';
+  Store.saveSettings(settings);
+});
+
+// ---------- backup ----------
+function renderBackupCount() {
+  const last = Store.lastExport();
+  $('bk-count').textContent = `${entries.length} entries` + (last ? ' · exported ' + new Date(last).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '');
+}
+function csvCell(v) { const s = v == null ? '' : String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+$('exp-json').addEventListener('click', () => Store.exportFile(`weight-journal-backup-${todayISO()}.json`,
+  JSON.stringify({ app: 'weight-journal', version: 1, exportedAt: new Date().toISOString(), entries, settings }, null, 2), 'application/json'));
+$('exp-csv').addEventListener('click', () => {
+  const rows = entries.map(e => [e.date, e.weight, e.dose, e.mood, e.side, e.notes].map(csvCell).join(','));
+  Store.exportFile(`weight-journal-${todayISO()}.csv`, '﻿' + ['Date,Weight (lbs),Dose,Mood,Side effects,Notes', ...rows].join('\r\n'), 'text/csv');
+});
+let pendingImport = null;
+$('imp-btn').addEventListener('click', () => $('imp-file').click());
+$('imp-file').addEventListener('change', () => {
+  const f = $('imp-file').files && $('imp-file').files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => { prepareImport(String(reader.result)); $('imp-file').value = ''; };
+  reader.onerror = () => { $('bk-msg').textContent = 'Could not read that file.'; };
+  reader.readAsText(f);
+});
+function prepareImport(text) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { $('bk-msg').textContent = 'That file is not a Weight Journal backup.'; return; }
+  const clean = normalize(Array.isArray(data) ? data : data && data.entries);
+  if (!clean.length) { $('bk-msg').textContent = 'No entries found in that file.'; return; }
+  const have = new Set(entries.map(e => e.date));
+  const added = clean.filter(e => !have.has(e.date)).length;
+  const sets = data && data.settings && isFinite(data.settings.startWeight) && isFinite(data.settings.goalWeight)
+    ? { startWeight: Number(data.settings.startWeight), goalWeight: Number(data.settings.goalWeight) } : null;
+  pendingImport = { clean, sets };
+  $('imp-summary').innerHTML = `<strong>${clean.length} entries</strong>, ${fmtShort(clean[0].date)} to ${fmtShort(clean[clean.length - 1].date)}. ${added} new, ${clean.length - added} on dates you already have (the file's version is used). Nothing is deleted.`;
+  $('imp-confirm').hidden = false;
+  $('bk-msg').textContent = '';
+}
+$('imp-cancel').addEventListener('click', () => { pendingImport = null; $('imp-confirm').hidden = true; });
+$('imp-go').addEventListener('click', () => {
+  if (!pendingImport) return;
+  const { clean, sets } = pendingImport;
+  pendingImport = null; $('imp-confirm').hidden = true;
+  clean.forEach(upsertMem);
+  if (sets) { settings = sets; syncGoalInputs(); }
+  render();
+  $('bk-msg').textContent = `Imported ${clean.length} entries.`;
+  Store.importMerge(clean, sets);
+});
+
+// ---------- sync status ----------
+function setSync(state, text) {
+  const el = $('sync');
+  el.dataset.state = state === 'synced' ? 'live' : state === 'error' ? 'off' : 'wait';
+  el.textContent = text || (state === 'synced' ? 'Synced ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : state === 'saving' ? 'Saving' : state === 'error' ? 'Offline' : 'Connecting');
+  $('offline').hidden = state !== 'error';
+}
+
+// ---------- startup ----------
+Store.init();
+syncGoalInputs();
+render();
+showPage((location.hash || '').replace('#', '') || 'today');
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (currentPage === 'trend') renderChart(compute()); });
+let resizeT;
+window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (currentPage === 'trend') renderChart(compute()); }, 120); });
+
 </script>
 </body>
 </html>
